@@ -11,7 +11,7 @@ JSON format (`db.json`) and served as a REST API by JSON Server.
 
 | Member | Module | Branch | Folder |
 |---|---|---|---|
-| Kapil Singh (Team Lead) | Login and registration | `feature/auth` | `src/features/auth` |
+| Kapil Singh (Team Lead) | Overall development and integration, login and registration | `feature/auth`, `dev` | `src/features/auth`, `src/services`, `src/App.jsx` |
 | Hemant Varshney | Vendor directory | `feature/vendors` | `src/features/vendors` |
 | Jatin Kumar | Budget, guests, tasks | `feature/planning` | `src/features/planning` |
 | Kanishk Chahar | Layout, pages, UI | `feature/frontend` | `src/components`, `src/pages` |
