@@ -1,4 +1,4 @@
-﻿const API_URL = 'http://localhost:3001'
+const API_URL = 'http://localhost:3001'
 
 export async function getAll(collection) {
   const res = await fetch(`${API_URL}/${collection}`)

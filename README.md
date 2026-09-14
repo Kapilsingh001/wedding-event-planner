@@ -1,4 +1,4 @@
-﻿# Wedding and Event Planning Management Platform
+# Wedding and Event Planning Management Platform
 
 GLA University, B.Tech CSE 3rd Year mini project, Group 7.
 Mentor: Yash Singh
