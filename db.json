@@ -1,0 +1,11 @@
+﻿{
+  "users": [],
+  "events": [],
+  "vendors": [
+    { "id": "1", "name": "Royal Palace Banquet", "category": "Venue", "city": "Mathura", "price": 150000, "rating": 4.5 },
+    { "id": "2", "name": "Spice Route Caterers", "category": "Catering", "city": "Agra", "price": 80000, "rating": 4.3 }
+  ],
+  "expenses": [],
+  "guests": [],
+  "tasks": []
+}
