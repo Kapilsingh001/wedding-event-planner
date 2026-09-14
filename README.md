@@ -11,10 +11,10 @@ JSON format (`db.json`) and served as a REST API by JSON Server.
 
 | Member | Module | Branch | Folder |
 |---|---|---|---|
-| Kapil Singh (Team Lead) | Overall development and integration, login and registration | `feature/auth`, `dev` | `src/features/auth`, `src/services`, `src/App.jsx` |
-| Hemant Varshney | Vendor directory | `feature/vendors` | `src/features/vendors` |
-| Jatin Kumar | Budget, guests, tasks | `feature/planning` | `src/features/planning` |
-| Kanishk Chahar | Layout, pages, UI | `feature/frontend` | `src/components`, `src/pages` |
+| Kapil Singh (Team Lead) | Frontend development: UI design, layout, navigation, dashboard, all pages, integration | `feature/frontend`, `dev` | `src/components`, `src/pages`, `src/App.jsx` |
+| Hemant Varshney | Vendor directory, search, filters, shortlist | `feature/vendors` | `src/features/vendors` |
+| Jatin Kumar | Events, budget tracker, guest list, task checklist | `feature/planning` | `src/features/planning` |
+| Kanishk Chahar | Login and registration, db.json data, JSON Server API | `feature/auth` | `src/features/auth`, `src/services`, `db.json` |
 
 Each member works only inside their own folder to avoid merge conflicts.
 Talk to the team before changing shared files (`App.jsx`, `db.json`, `package.json`).
