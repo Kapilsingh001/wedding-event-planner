@@ -18,6 +18,41 @@ budget tracking, guest list, and task checklist. Data is stored in JSON format.
 Work only inside your own folder. Talk to the team before changing shared files
 (`src/App.jsx`, `src/main.jsx`, `package.json`).
 
+## Contributors
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/Kapilsingh001">
+        <img src="https://avatars.githubusercontent.com/u/KAPIL_USER_ID?v=4" width="100px;" alt="Kapil Singh"/><br />
+        <sub><b>Kapil Singh</b></sub><br />
+        Team Lead
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/hemantvarshney">
+        <img src="https://avatars.githubusercontent.com/u/HEMANT_USER_ID?v=4" width="100px;" alt="Hemant Varshney"/><br />
+        <sub><b>Hemant Varshney</b></sub><br />
+        Vendor Module
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/jatinkumar">
+        <img src="https://avatars.githubusercontent.com/u/JATIN_USER_ID?v=4" width="100px;" alt="Jatin Kumar"/><br />
+        <sub><b>Jatin Kumar</b></sub><br />
+        Events & Budget
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/kanishkchahar">
+        <img src="https://avatars.githubusercontent.com/u/KANISHK_USER_ID?v=4" width="100px;" alt="Kanishk Chahar"/><br />
+        <sub><b>Kanishk Chahar</b></sub><br />
+        Authentication
+      </a>
+    </td>
+  </tr>
+</table>
+
 ## Getting started
 
 ```bash
