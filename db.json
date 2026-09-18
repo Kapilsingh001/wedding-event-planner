@@ -1,11 +1,47 @@
 {
-  "users": [],
-  "events": [],
-  "vendors": [
-    { "id": "1", "name": "Royal Palace Banquet", "category": "Venue", "city": "Mathura", "price": 150000, "rating": 4.5 },
-    { "id": "2", "name": "Spice Route Caterers", "category": "Catering", "city": "Agra", "price": 80000, "rating": 4.3 }
+  "cities": [
+    { "id": 1, "name": "Agra" },
+    { "id": 2, "name": "Ahmedabad" },
+    { "id": 3, "name": "Bangalore" },
+    { "id": 4, "name": "Chandigarh" },
+    { "id": 5, "name": "Chennai" },
+    { "id": 6, "name": "Delhi" },
+    { "id": 7, "name": "Goa" },
+    { "id": 8, "name": "Hyderabad" },
+    { "id": 9, "name": "Indore" },
+    { "id": 10, "name": "Jaipur" },
+    { "id": 11, "name": "Kochi" },
+    { "id": 12, "name": "Kolkata" },
+    { "id": 13, "name": "Lucknow" },
+    { "id": 14, "name": "Mumbai" },
+    { "id": 15, "name": "Nagpur" },
+    { "id": 16, "name": "Pune" },
+    { "id": 17, "name": "Surat" },
+    { "id": 18, "name": "Udaipur" },
+    { "id": 19, "name": "Vadodara" }
   ],
-  "expenses": [],
-  "guests": [],
-  "tasks": []
+  "categories": [
+    { "id": 1, "name": "Catering" },
+    { "id": 2, "name": "Photographer" },
+    { "id": 3, "name": "Decorator" },
+    { "id": 4, "name": "Venue" },
+    { "id": 5, "name": "Music" }
+  ],
+  "vendors": [
+    { "id": 1, "name": "Royal Catering Services", "category": "Catering", "city": "Delhi", "price": 50000, "rating": 4.8 },
+    { "id": 2, "name": "Taj Mahal Palace Caterers", "category": "Catering", "city": "Agra", "price": 65000, "rating": 4.7 },
+    { "id": 3, "name": "Agra Lens & Wedding Moments", "category": "Photographer", "city": "Agra", "price": 45000, "rating": 4.6 },
+    { "id": 4, "name": "Click & Frame Studios", "category": "Photographer", "city": "Mumbai", "price": 75000, "rating": 4.9 },
+    { "id": 5, "name": "Grand Imperial Palace", "category": "Venue", "city": "Udaipur", "price": 250000, "rating": 5.0 },
+    { "id": 6, "name": "Mughal Garden Banquets", "category": "Venue", "city": "Agra", "price": 180000, "rating": 4.8 },
+    { "id": 7, "name": "Dream Theme Decors", "category": "Decorator", "city": "Jaipur", "price": 120000, "rating": 4.6 },
+    { "id": 8, "name": "Royal Floral Decors", "category": "Decorator", "city": "Agra", "price": 85000, "rating": 4.5 },
+    { "id": 9, "name": "BeatDrop Symphony Band", "category": "Music", "city": "Goa", "price": 45000, "rating": 4.7 },
+    { "id": 10, "name": "Agra Beats DJ & Sound", "category": "Music", "city": "Agra", "price": 30000, "rating": 4.4 },
+    { "id": 11, "name": "Saffron Gourmet Caterers", "category": "Catering", "city": "Bangalore", "price": 85000, "rating": 4.9 },
+    { "id": 12, "name": "Focus & Frame Studio", "category": "Photographer", "city": "Chandigarh", "price": 90000, "rating": 4.9 },
+    { "id": 13, "name": "Elegance Event Decorators", "category": "Decorator", "city": "Ahmedabad", "price": 120000, "rating": 4.4 },
+    { "id": 14, "name": "The Pavilion Lawns", "category": "Venue", "city": "Hyderabad", "price": 300000, "rating": 4.8 },
+    { "id": 15, "name": "Symphony Strings", "category": "Music", "city": "Kolkata", "price": 40000, "rating": 4.5 }
+  ]
 }
