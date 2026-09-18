@@ -46,5 +46,8 @@
     { "id": 13, "name": "Elegance Event Decorators", "category": "Decorator", "city": "Ahmedabad", "price": 120000, "rating": 4.4 },
     { "id": 14, "name": "The Pavilion Lawns", "category": "Venue", "city": "Hyderabad", "price": 300000, "rating": 4.8 },
     { "id": 15, "name": "Symphony Strings", "category": "Music", "city": "Kolkata", "price": 40000, "rating": 4.5 }
-  ]
+  ],
+  "events": [],
+  "expenses": [],
+  "guests": []
 }

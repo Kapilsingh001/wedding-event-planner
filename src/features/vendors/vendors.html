@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find Vendors for Your Dream Wedding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vendors.css">
+</head>
+<body>
+
+<header class="vv-hero">
+  <span class="vv-flower vv-flower-left">🌸</span>
+  <span class="vv-flower vv-flower-right">🌸</span>
+
+  <span class="vv-badge">
+    <svg viewBox="0 0 24 24" width="13" height="13"><path d="M12 21s-6.716-4.35-9.428-8.06C.86 10.42 1.2 6.9 4.1 5.2c2.2-1.28 4.9-.62 6.4 1.28 1.5-1.9 4.2-2.56 6.4-1.28 2.9 1.7 3.24 5.22 1.53 7.74C18.72 16.65 12 21 12 21Z"/></svg>
+    Curated Across India
+  </span>
+  <h1 class="vv-title">Find Vendors for Your<br>Dream <span>Wedding</span> 💍</h1>
+  <p class="vv-subtitle">Browse top-rated caterers, photographers, venues, decorators and more — everything you need to plan the big day.</p>
+</header>
+
+<main class="vv-container">
+
+  <div class="vv-controls">
+    <div class="vv-field">
+      <svg class="vv-icon" viewBox="0 0 24 24" width="16" height="16"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42-1.39ZM11 18a7 7 0 1 1 7-7 7 7 0 0 1-7 7Z"/></svg>
+      <input id="searchInput" type="text" placeholder="Search vendors by name…">
+    </div>
+
+    <div class="vv-select-wrap">
+      <select id="cityFilter">
+        <option value="">All cities</option>
+      </select>
+    </div>
+
+    <div class="vv-select-wrap">
+      <select id="categoryFilter">
+        <option value="">All categories</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="vv-results-row">
+    <div>
+      <h2 class="vv-results-heading">Our Vendors</h2>
+      <div class="vv-results-count" id="resultCount"></div>
+    </div>
+    <select class="vv-sort-select" id="sortSelect">
+      <option value="default">Sort: Featured</option>
+      <option value="rating-desc">Rating: High to low</option>
+      <option value="price-asc">Price: Low to high</option>
+      <option value="price-desc">Price: High to low</option>
+    </select>
+  </div>
+
+  <div class="vv-grid" id="grid"></div>
+
+</main>
+
+<script>
+  const vendors = [
+    { id: 1, name: "Royal Catering Services", category: "Catering", city: "Delhi", price: 50000, rating: 4.8 },
+    { id: 2, name: "Taj Mahal Palace Caterers", category: "Catering", city: "Agra", price: 65000, rating: 4.7 },
+    { id: 3, name: "Agra Lens & Wedding Moments", category: "Photographer", city: "Agra", price: 45000, rating: 4.6 },
+    { id: 4, name: "Click & Frame Studios", category: "Photographer", city: "Mumbai", price: 75000, rating: 4.9 },
+    { id: 5, name: "Grand Imperial Palace", category: "Venue", city: "Udaipur", price: 250000, rating: 5.0 },
+    { id: 6, name: "Mughal Garden Banquets", category: "Venue", city: "Agra", price: 180000, rating: 4.8 },
+    { id: 7, name: "Dream Theme Decors", category: "Decorator", city: "Jaipur", price: 120000, rating: 4.6 },
+    { id: 8, name: "Royal Floral Decors", category: "Decorator", city: "Agra", price: 85000, rating: 4.5 },
+    { id: 9, name: "BeatDrop Symphony Band", category: "Music", city: "Goa", price: 45000, rating: 4.7 },
+    { id: 10, name: "Agra Beats DJ & Sound", category: "Music", city: "Agra", price: 30000, rating: 4.4 },
+    { id: 11, name: "Saffron Gourmet Caterers", category: "Catering", city: "Bangalore", price: 85000, rating: 4.9 },
+    { id: 12, name: "Focus & Frame Studio", category: "Photographer", city: "Chandigarh", price: 90000, rating: 4.9 },
+    { id: 13, name: "Elegance Event Decorators", category: "Decorator", city: "Ahmedabad", price: 120000, rating: 4.4 },
+    { id: 14, name: "The Pavilion Lawns", category: "Venue", city: "Hyderabad", price: 300000, rating: 4.8 },
+    { id: 15, name: "Symphony Strings", category: "Music", city: "Kolkata", price: 40000, rating: 4.5 }
+  ];
+
+  const pinIcon = '<svg class="vv-icon" viewBox="0 0 24 24" width="12" height="12" style="fill:#F43F65"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z"/></svg>';
+  const heartIcon = '<svg class="vv-icon" viewBox="0 0 24 24" width="13" height="13" style="fill:#F43F65"><path d="M12 21s-6.716-4.35-9.428-8.06C.86 10.42 1.2 6.9 4.1 5.2c2.2-1.28 4.9-.62 6.4 1.28 1.5-1.9 4.2-2.56 6.4-1.28 2.9 1.7 3.24 5.22 1.53 7.74C18.72 16.65 12 21 12 21Z"/></svg>';
+
+  function categoryClass(category) {
+    const map = { Catering: "catering", Photographer: "photographer", Venue: "venue", Decorator: "decorator", Music: "music" };
+    return map[category] || "default";
+  }
+
+  function money(n) {
+    return "₹" + Number(n).toLocaleString("en-IN");
+  }
+
+  function populateFilters() {
+    const cityFilter = document.getElementById("cityFilter");
+    const categoryFilter = document.getElementById("categoryFilter");
+
+    [...new Set(vendors.map(v => v.city))].sort().forEach(city => {
+      const opt = document.createElement("option");
+      opt.value = city;
+      opt.textContent = city;
+      cityFilter.appendChild(opt);
+    });
+
+    [...new Set(vendors.map(v => v.category))].sort().forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat;
+      categoryFilter.appendChild(opt);
+    });
+  }
+
+  function render() {
+    const search = document.getElementById("searchInput").value.trim().toLowerCase();
+    const city = document.getElementById("cityFilter").value;
+    const category = document.getElementById("categoryFilter").value;
+    const sort = document.getElementById("sortSelect").value;
+
+    let filtered = vendors.filter(v =>
+      (!search || v.name.toLowerCase().includes(search)) &&
+      (!city || v.city === city) &&
+      (!category || v.category === category)
+    );
+
+    if (sort === "rating-desc") filtered.sort((a, b) => b.rating - a.rating);
+    if (sort === "price-asc") filtered.sort((a, b) => a.price - b.price);
+    if (sort === "price-desc") filtered.sort((a, b) => b.price - a.price);
+
+    const grid = document.getElementById("grid");
+    const count = document.getElementById("resultCount");
+    count.textContent = filtered.length + (filtered.length === 1 ? " vendor found" : " vendors found");
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+        <div class="vv-status" style="grid-column:1/-1">
+          <h3 class="vv-status-heading">No vendors match your search</h3>
+          <p>Try a different city, category, or clear your search.</p>
+          <button class="vv-reset-btn" onclick="resetFilters()">Clear filters</button>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(v => `
+      <a href="#" class="vv-card">
+        <div>
+          <div class="vv-card-header">
+            <span class="vv-tag ${categoryClass(v.category)}">${v.category}</span>
+            <span class="vv-rating">${heartIcon} ${v.rating.toFixed(1)}</span>
+          </div>
+          <h3 class="vv-card-title">${v.name}</h3>
+          <div class="vv-city-row">${pinIcon} ${v.city}</div>
+        </div>
+        <div class="vv-card-footer">
+          <span class="vv-price-label">STARTING PRICE</span>
+          <span class="vv-price">${money(v.price)}</span>
+        </div>
+      </a>
+    `).join("");
+  }
+
+  function resetFilters() {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("cityFilter").value = "";
+    document.getElementById("categoryFilter").value = "";
+    document.getElementById("sortSelect").value = "default";
+    render();
+  }
+
+  document.getElementById("searchInput").addEventListener("input", render);
+  document.getElementById("cityFilter").addEventListener("change", render);
+  document.getElementById("categoryFilter").addEventListener("change", render);
+  document.getElementById("sortSelect").addEventListener("change", render);
+
+  populateFilters();
+  render();
+</script>
+
+</body>
+</html>
