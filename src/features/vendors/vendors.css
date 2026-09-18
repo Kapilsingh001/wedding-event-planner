@@ -1,0 +1,297 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background-color: #FFF7F8;
+  min-height: 100vh;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  color: #241B22;
+}
+
+/* ---------- Hero ---------- */
+
+.vv-hero {
+  background: linear-gradient(135deg, #FFD1DC 0%, #FF8FA3 55%, #F43F65 100%);
+  padding: 56px 24px 90px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.vv-flower {
+  position: absolute;
+  font-size: 20px;
+  opacity: 0.8;
+}
+.vv-flower-left { top: 18px; left: 28px; }
+.vv-flower-right { bottom: 24px; right: 30px; }
+
+.vv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 7px 18px;
+  border-radius: 30px;
+  margin-bottom: 18px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #F43F65;
+  letter-spacing: 0.03em;
+}
+.vv-badge svg { fill: #F43F65; }
+
+.vv-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 44px);
+  margin: 0 0 12px;
+  color: #241B22;
+  line-height: 1.2;
+}
+.vv-title span { color: #FFFFFF; }
+
+.vv-subtitle {
+  font-size: 15px;
+  color: #5C4650;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ---------- Layout ---------- */
+
+.vv-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+/* ---------- Search / filter panel ---------- */
+
+.vv-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: -52px;
+  margin-bottom: 10px;
+  background-color: #FFFFFF;
+  padding: 20px;
+  border-radius: 24px;
+  box-shadow: 0 22px 45px -20px rgba(244, 63, 101, 0.35);
+  position: relative;
+}
+
+.vv-field {
+  flex: 2 1 240px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 18px;
+  border-radius: 30px;
+  border: 1px solid #FCE1E7;
+  background-color: #FFF7F8;
+}
+
+.vv-field input {
+  flex: 1;
+  padding: 14px 0;
+  font-size: 14.5px;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-family: 'Poppins', sans-serif;
+  color: #241B22;
+}
+
+.vv-select-wrap {
+  flex: 1 1 170px;
+  padding: 0 18px;
+  border-radius: 30px;
+  border: 1px solid #FCE1E7;
+  background-color: #FFF7F8;
+}
+
+.vv-select-wrap select {
+  width: 100%;
+  padding: 14px 0;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  color: #5C4650;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.vv-icon { flex-shrink: 0; fill: #F43F65; }
+
+/* ---------- Results row ---------- */
+
+.vv-results-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 34px 4px 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.vv-results-heading {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 24px;
+  margin: 0;
+  color: #241B22;
+}
+
+.vv-results-count {
+  font-size: 13.5px;
+  color: #8B7A82;
+}
+
+.vv-sort-select {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13.5px;
+  color: #8B7A82;
+  background: #FFFFFF;
+  border: 1px solid #FCE1E7;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+/* ---------- Grid & cards ---------- */
+
+.vv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px;
+}
+
+.vv-card {
+  background-color: #FFFFFF;
+  border-radius: 22px;
+  border: 1px solid #FCE9EE;
+  padding: 22px;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 8px 20px -14px rgba(36, 27, 34, 0.12);
+  transition: all 0.22s ease;
+}
+
+.vv-card:hover {
+  box-shadow: 0 24px 40px -22px rgba(244, 63, 101, 0.35);
+  transform: translateY(-5px);
+}
+
+.vv-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.vv-tag {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+.vv-tag.catering     { color: #D97B3F; background: #FBEADD; }
+.vv-tag.photographer { color: #6C63A6; background: #ECE9F7; }
+.vv-tag.venue        { color: #F43F65; background: #FFE3E9; }
+.vv-tag.decorator    { color: #2E9E77; background: #E1F5EC; }
+.vv-tag.music        { color: #C2447A; background: #FBE4EF; }
+.vv-tag.default      { color: #8B7A82; background: #F3EBEE; }
+
+.vv-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #F43F65;
+  background-color: #FFE3E9;
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+
+.vv-card-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 19px;
+  margin: 0 0 10px;
+  line-height: 1.35;
+  color: #241B22;
+}
+
+.vv-city-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: #8B7A82;
+  margin: 0 0 20px;
+}
+
+.vv-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 16px;
+  border-top: 1px dashed #FCE9EE;
+}
+
+.vv-price-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #8B7A82;
+}
+
+.vv-price {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 19px;
+  color: #F43F65;
+}
+
+/* ---------- Status states ---------- */
+
+.vv-status {
+  text-align: center;
+  padding: 70px 20px;
+  color: #8B7A82;
+}
+
+.vv-status-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: #241B22;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.vv-reset-btn {
+  margin-top: 18px;
+  background: linear-gradient(135deg, #FF8FA3, #F43F65);
+  color: #FFFFFF;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+}
+
+.vv-reset-btn:hover {
+  filter: brightness(0.95);
+}
