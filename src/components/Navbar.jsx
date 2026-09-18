@@ -1,11 +1,15 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { getUser, logout } from '../features/auth/auth'
+import Icon from './Icons.jsx'
 import './Navbar.css'
 
 function Navbar() {
+  const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   useLocation()
   const user = getUser()
+  const firstName = user ? (user.name || 'there').split(' ')[0] : ''
 
   function handleLogout() {
     logout()
@@ -13,31 +17,58 @@ function Navbar() {
   }
 
   return (
-    <nav className="navbar">
-      <Link to="/" className="navbar-logo">💍 Wedding</Link>
-      <div className="navbar-links">
-        <Link to="/">Home</Link>
-        <Link to="/vendors">Vendors</Link>
-        <Link to="/events">Events</Link>
-        {!user && <Link to="/register">Register</Link>}
+    <header className="navbar">
+      <div className="container navbar-inner">
+        <Link to="/" className="navbar-logo" onClick={() => setOpen(false)}>
+          <Icon name="gem" size={22} />
+          <span>Wedding Planner</span>
+        </Link>
+
+        <button
+          type="button"
+          className="navbar-toggle"
+          aria-expanded={open}
+          aria-controls="navbar-menu"
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          onClick={() => setOpen(!open)}
+        >
+          <Icon name={open ? 'close' : 'menu'} size={24} />
+        </button>
+
+        <div
+          id="navbar-menu"
+          className={open ? 'navbar-menu open' : 'navbar-menu'}
+          onClick={() => setOpen(false)}
+        >
+          <nav className="navbar-links" aria-label="Main">
+            <NavLink to="/" end>{user ? 'Dashboard' : 'Home'}</NavLink>
+            <NavLink to="/vendors">Vendors</NavLink>
+            <NavLink to="/events">Events</NavLink>
+            <Link to="/events">Budget</Link>
+            <NavLink to="/guests">Guests</NavLink>
+          </nav>
+
+          <div className="navbar-actions">
+            {user ? (
+              <>
+                <span className="navbar-user">
+                  <Icon name="user" size={16} />
+                  Hi, {firstName}
+                </span>
+                <button type="button" className="btn btn-ghost" onClick={handleLogout}>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="navbar-login">Login</Link>
+                <Link to="/register" className="btn">Get Started</Link>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="navbar-right">
-        {user ? (
-          <>
-            <span className="navbar-greeting">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              Hi, {user.name.split(' ')[0]}
-            </span>
-            <button className="btn" onClick={handleLogout}>Logout</button>
-          </>
-        ) : (
-          <Link to="/login" className="btn">Login</Link>
-        )}
-      </div>
-    </nav>
+    </header>
   )
 }
 

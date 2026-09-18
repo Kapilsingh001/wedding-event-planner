@@ -1,42 +1,42 @@
 import { Link } from 'react-router-dom'
+import Icon from './Icons.jsx'
 import './Footer.css'
 
-function Footer(){
-    return (
-        <footer className='footer'>
+function Footer() {
+  return (
+    <footer className="footer">
+      <div className="container footer-grid">
 
-            <div className='footer-grid'>
+        <div className="footer-brand">
+          <p className="footer-logo">
+            <Icon name="gem" size={20} />
+            Wedding Planner
+          </p>
+          <p>Plan your perfect wedding without the planning chaos.</p>
+        </div>
 
-                <div className='footer-brand'>
-                    <h3>💍 Wedding</h3>
-                    <p>Plan your dream wedding with vendors, events, budget and guests all in one place.</p>
-                </div>
+        <nav className="footer-col" aria-label="Product">
+          <h2>Product</h2>
+          <Link to="/vendors">Vendors</Link>
+          <Link to="/events">Events</Link>
+          <Link to="/events">Budget</Link>
+          <Link to="/guests">Guests</Link>
+        </nav>
 
-                <div className='footer-col'>
-                    <h4>Explore</h4>
-                    <Link to='/'>Home</Link>
-                    <Link to='/vendors'>Vendors</Link>
-                    <Link to='/events'>Events</Link>
-                </div>
+        <nav className="footer-col" aria-label="Account">
+          <h2>Account</h2>
+          <Link to="/login">Login</Link>
+          <Link to="/register">Get Started</Link>
+        </nav>
 
-                <div className='footer-col'>
-                    <h4>Account</h4>
-                    <Link to='/login'>Login</Link>
-                    <Link to='/register'>Register</Link>
-                </div>
+      </div>
 
-                <div className='footer-col'>
-                    <h4>Contact</h4>
-                    <span>GLA University, Mathura</span>
-                    <span>B.Tech CSE, Group 7</span>
-                </div>
-
-            </div>
-
-            <p className='footer-bottom'>© 2026 Wedding Planner. Mini Project, GLA University.</p>
-
-        </footer>
-    )
+      <div className="container footer-bottom">
+        <p>&copy; 2026 Wedding Planner</p>
+        <p>Academic Project, GLA University</p>
+      </div>
+    </footer>
+  )
 }
 
 export default Footer

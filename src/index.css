@@ -1,11 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap');
 
 :root {
-  --pink: #f4737f;
-  --pink-dark: #e85d6a;
-  --pink-light: #fff0f3;
-  --text-dark: #1f1f1f;
-  --text-gray: #666;
+  --bg: #FFF9F7;
+  --surface: #FFFFFF;
+  --pink: #E85D75;
+  --pink-dark: #C93F59;
+  --pink-deeper: #B0344C;
+  --pink-light: #FCEEF0;
+  --rose: #B76E79;
+  --rose-dark: #9A5561;
+  --soft: #F3D7DC;
+  --text-dark: #2B2527;
+  --text-gray: #6B6164;
+  --border: #EFE3E1;
+  --radius: 14px;
+  --shadow: 0 6px 24px rgba(43, 37, 39, 0.06);
+  --shadow-hover: 0 14px 32px rgba(43, 37, 39, 0.10);
+  --container: 1160px;
 }
 
 *, *::before, *::after {
@@ -16,13 +27,16 @@
 
 body {
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #fff0f3 0%, #fce4ec 50%, #fff8f9 100%);
+  font-size: 16px;
+  line-height: 1.6;
+  background: var(--bg);
   min-height: 100vh;
   color: var(--text-dark);
 }
 
 h1, h2, h3 {
   font-family: 'Playfair Display', serif;
+  line-height: 1.2;
 }
 
 a {
@@ -30,22 +44,113 @@ a {
   color: inherit;
 }
 
-.btn {
-  background: var(--pink);
+img {
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 3px solid var(--pink-dark);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -60px;
+  z-index: 200;
+  background: var(--text-dark);
   color: white;
-  padding: 12px 28px;
-  border-radius: 50px;
-  border: none;
-  cursor: pointer;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 8px;
   font-size: 14px;
-  transition: background 0.2s;
-  display: inline-block;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--pink-dark);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: 2px solid var(--pink-dark);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.2;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
 }
 
 .btn:hover {
-  background: var(--pink-dark);
+  background: var(--pink-deeper);
+  border-color: var(--pink-deeper);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--pink-dark);
+  border-color: var(--soft);
+}
+
+.btn-ghost:hover {
+  background: var(--pink-light);
+  border-color: var(--pink-dark);
+  color: var(--pink-deeper);
+}
+
+.empty-state {
+  max-width: 480px;
+  margin: 72px auto;
+  padding: 40px 28px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--soft);
+  border-radius: var(--radius);
+}
+
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: var(--pink-light);
+  color: var(--pink-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.empty-state p {
+  color: var(--text-gray);
+  margin-bottom: 24px;
+}
+
+.empty-state-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 #root {
@@ -56,4 +161,11 @@ a {
 
 main {
   flex: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }
