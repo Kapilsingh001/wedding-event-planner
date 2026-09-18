@@ -1,56 +1,64 @@
-@import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Karla:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap');
 
-.vv-page {
-  background-color: #FBF4E8;
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background-color: #FFF7F8;
   min-height: 100vh;
-  font-family: 'Karla', 'Segoe UI', sans-serif;
-  color: #2B1810;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  color: #241B22;
 }
 
 /* ---------- Hero ---------- */
 
 .vv-hero {
-  background: linear-gradient(160deg, #7A1130 0%, #5A0C24 100%);
-  color: #FBF4E8;
-  padding: 52px 24px 68px;
+  background: linear-gradient(135deg, #FFD1DC 0%, #FF8FA3 55%, #F43F65 100%);
+  padding: 56px 24px 90px;
   text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
-.vv-eyebrow-row {
-  display: flex;
+.vv-flower {
+  position: absolute;
+  font-size: 20px;
+  opacity: 0.8;
+}
+.vv-flower-left { top: 18px; left: 28px; }
+.vv-flower-right { bottom: 24px; right: 30px; }
+
+.vv-badge {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 8px;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 7px 18px;
+  border-radius: 30px;
+  margin-bottom: 18px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #F43F65;
+  letter-spacing: 0.03em;
 }
-
-.vv-eyebrow-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #E8C877;
-}
-
-.vv-eyebrow-text {
-  letter-spacing: 0.14em;
-  font-size: 12px;
-  color: #E8C877;
-  font-weight: 700;
-}
+.vv-badge svg { fill: #F43F65; }
 
 .vv-title {
-  font-family: 'Marcellus', serif;
-  font-weight: 400;
-  font-size: clamp(32px, 5vw, 46px);
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 44px);
   margin: 0 0 12px;
+  color: #241B22;
+  line-height: 1.2;
 }
+.vv-title span { color: #FFFFFF; }
 
 .vv-subtitle {
   font-size: 15px;
-  color: #EFDDD0;
+  color: #5C4650;
   max-width: 520px;
   margin: 0 auto;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 /* ---------- Layout ---------- */
@@ -67,13 +75,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  margin-top: -36px;
+  margin-top: -52px;
   margin-bottom: 10px;
-  background-color: #FFFDF8;
+  background-color: #FFFFFF;
   padding: 20px;
-  border-radius: 4px;
-  border: 1px solid #E7D9BF;
-  box-shadow: 0 18px 40px -22px rgba(90, 12, 36, 0.35);
+  border-radius: 24px;
+  box-shadow: 0 22px 45px -20px rgba(244, 63, 101, 0.35);
   position: relative;
 }
 
@@ -82,47 +89,45 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 14px;
-  border-radius: 3px;
-  border: 1px solid #E7D9BF;
-  background-color: #fff;
+  padding: 0 18px;
+  border-radius: 30px;
+  border: 1px solid #FCE1E7;
+  background-color: #FFF7F8;
 }
 
 .vv-field input {
   flex: 1;
-  padding: 13px 0;
+  padding: 14px 0;
   font-size: 14.5px;
   border: none;
   outline: none;
   background-color: transparent;
-  font-family: 'Karla', sans-serif;
-  color: #2B1810;
+  font-family: 'Poppins', sans-serif;
+  color: #241B22;
 }
 
 .vv-select-wrap {
   flex: 1 1 170px;
-  padding: 0 14px;
-  border-radius: 3px;
-  border: 1px solid #E7D9BF;
-  background-color: #fff;
+  padding: 0 18px;
+  border-radius: 30px;
+  border: 1px solid #FCE1E7;
+  background-color: #FFF7F8;
 }
 
 .vv-select-wrap select {
   width: 100%;
-  padding: 13px 0;
+  padding: 14px 0;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   border: none;
   outline: none;
   background-color: transparent;
-  color: #5A4636;
+  color: #5C4650;
   cursor: pointer;
-  font-family: 'Karla', sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
-.vv-icon {
-  flex-shrink: 0;
-}
+.vv-icon { flex-shrink: 0; fill: #F43F65; }
 
 /* ---------- Results row ---------- */
 
@@ -130,32 +135,32 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin: 30px 2px 18px;
+  margin: 34px 4px 20px;
   flex-wrap: wrap;
   gap: 10px;
 }
 
 .vv-results-heading {
-  font-family: 'Marcellus', serif;
-  font-weight: 400;
-  font-size: 22px;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 24px;
   margin: 0;
-  color: #5A0C24;
+  color: #241B22;
 }
 
 .vv-results-count {
   font-size: 13.5px;
-  color: #6B5A4E;
+  color: #8B7A82;
 }
 
 .vv-sort-select {
-  font-family: 'Karla', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 13.5px;
-  color: #6B5A4E;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid #E7D9BF;
-  padding: 4px 4px;
+  color: #8B7A82;
+  background: #FFFFFF;
+  border: 1px solid #FCE1E7;
+  border-radius: 20px;
+  padding: 8px 16px;
   cursor: pointer;
 }
 
@@ -164,27 +169,26 @@
 .vv-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
+  gap: 22px;
 }
 
 .vv-card {
-  background-color: #FFFDF8;
-  border-radius: 2px;
-  border: 1px solid #E7D9BF;
-  border-left: 3px solid #C79A3E;
-  padding: 20px;
+  background-color: #FFFFFF;
+  border-radius: 22px;
+  border: 1px solid #FCE9EE;
+  padding: 22px;
   text-decoration: none;
   color: inherit;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.18s ease;
+  box-shadow: 0 8px 20px -14px rgba(36, 27, 34, 0.12);
+  transition: all 0.22s ease;
 }
 
 .vv-card:hover {
-  border-left-color: #7A1130;
-  box-shadow: 0 20px 30px -20px rgba(90, 12, 36, 0.3);
-  transform: translateY(-3px);
+  box-shadow: 0 24px 40px -22px rgba(244, 63, 101, 0.35);
+  transform: translateY(-5px);
 }
 
 .vv-card-header {
@@ -196,17 +200,17 @@
 
 .vv-tag {
   font-size: 12px;
-  font-weight: 700;
-  padding: 5px 12px;
+  font-weight: 600;
+  padding: 6px 14px;
   border-radius: 20px;
 }
 
-.vv-tag.catering       { color: #B25A2A; background: #FBE9DC; }
-.vv-tag.photographer   { color: #3D4B8C; background: #E4E7F6; }
-.vv-tag.venue          { color: #7A1130; background: #F7E3E7; }
-.vv-tag.decorator      { color: #1F6B4F; background: #E1F0E8; }
-.vv-tag.music          { color: #8B3A62; background: #F5E2ED; }
-.vv-tag.default        { color: #6B5A4E; background: #EFE7DA; }
+.vv-tag.catering     { color: #D97B3F; background: #FBEADD; }
+.vv-tag.photographer { color: #6C63A6; background: #ECE9F7; }
+.vv-tag.venue        { color: #F43F65; background: #FFE3E9; }
+.vv-tag.decorator    { color: #2E9E77; background: #E1F5EC; }
+.vv-tag.music        { color: #C2447A; background: #FBE4EF; }
+.vv-tag.default      { color: #8B7A82; background: #F3EBEE; }
 
 .vv-rating {
   display: flex;
@@ -214,16 +218,19 @@
   gap: 4px;
   font-size: 13px;
   font-weight: 700;
-  color: #5A0C24;
+  color: #F43F65;
+  background-color: #FFE3E9;
+  padding: 5px 10px;
+  border-radius: 20px;
 }
 
 .vv-card-title {
-  font-family: 'Marcellus', serif;
-  font-weight: 400;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
   font-size: 19px;
   margin: 0 0 10px;
-  line-height: 1.3;
-  color: #2B1810;
+  line-height: 1.35;
+  color: #241B22;
 }
 
 .vv-city-row {
@@ -231,7 +238,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13.5px;
-  color: #6B5A4E;
+  color: #8B7A82;
   margin: 0 0 20px;
 }
 
@@ -239,20 +246,21 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding-top: 14px;
-  border-top: 1px dashed #E7D9BF;
+  padding-top: 16px;
+  border-top: 1px dashed #FCE9EE;
 }
 
 .vv-price-label {
   font-size: 11px;
   letter-spacing: 0.06em;
-  color: #6B5A4E;
+  color: #8B7A82;
 }
 
 .vv-price {
-  font-family: 'Marcellus', serif;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
   font-size: 19px;
-  color: #5A0C24;
+  color: #F43F65;
 }
 
 /* ---------- Status states ---------- */
@@ -260,29 +268,30 @@
 .vv-status {
   text-align: center;
   padding: 70px 20px;
-  color: #6B5A4E;
+  color: #8B7A82;
 }
 
 .vv-status-heading {
-  font-family: 'Marcellus', serif;
+  font-family: 'Playfair Display', serif;
   font-size: 22px;
-  color: #5A0C24;
-  font-weight: 400;
+  color: #241B22;
+  font-weight: 700;
   margin: 0 0 8px;
 }
 
 .vv-reset-btn {
-  margin-top: 16px;
-  background-color: #7A1130;
-  color: #FBF4E8;
+  margin-top: 18px;
+  background: linear-gradient(135deg, #FF8FA3, #F43F65);
+  color: #FFFFFF;
   border: none;
-  padding: 10px 22px;
-  border-radius: 3px;
+  padding: 12px 28px;
+  border-radius: 30px;
   font-size: 13.5px;
-  font-family: 'Karla', sans-serif;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
 }
 
 .vv-reset-btn:hover {
-  background-color: #5A0C24;
+  filter: brightness(0.95);
 }
