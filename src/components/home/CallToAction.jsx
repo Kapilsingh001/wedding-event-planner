@@ -11,7 +11,7 @@ function CallToAction() {
         <div className="cta">
           <div className="cta-text">
             <h2 id="cta-title">Ready to plan without the chaos?</h2>
-            <p>Set your budget, schedule your events and shortlist vendors in one organised place.</p>
+            <p>Plan your budget, events, vendors and guests, all in one place.</p>
             <div className="hero-actions">
               <Link to={loggedIn ? '/events' : '/register'} className="btn">
                 {loggedIn ? 'Go to My Events' : 'Get Started'} <Icon name="arrow" size={18} />

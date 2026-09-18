@@ -44,6 +44,7 @@ function Hero() {
         </div>
 
         <div className="hero-visual">
+          <p className="hero-sample">Example plan &middot; sample data</p>
           <img
             className="hero-photo"
             src="/images/hero.webp"
@@ -60,7 +61,6 @@ function Hero() {
             </div>
           ))}
 
-          <p className="hero-note">Sample data for illustration</p>
         </div>
 
       </div>

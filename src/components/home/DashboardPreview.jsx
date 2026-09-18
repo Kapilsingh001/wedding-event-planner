@@ -1,14 +1,8 @@
 import Icon from '../Icons.jsx'
 
-const budget = { total: 1000000, spent: 640000 }
+const planningProgress = 72
 
-const categories = [
-  { name: 'Venue', amount: 250000 },
-  { name: 'Catering', amount: 180000 },
-  { name: 'Photography', amount: 90000 },
-  { name: 'Decoration', amount: 80000 },
-  { name: 'Transportation', amount: 40000 },
-]
+const budget = { total: 1000000, spent: 640000 }
 
 const stats = [
   { icon: 'calendar', label: 'Events', value: 12 },
@@ -16,21 +10,24 @@ const stats = [
   { icon: 'users', label: 'Guests', value: 143 },
 ]
 
-const planningProgress = 72
-
 const upcoming = [
-  { name: 'Mehendi', when: '21 Sept, 5:00 PM', vendor: 'Decorator', status: 'Confirmed' },
-  { name: 'Sangeet', when: '22 Sept, 7:00 PM', vendor: 'Music', status: 'Confirmed' },
-  { name: 'Haldi', when: '23 Sept, 10:00 AM', vendor: 'Catering', status: 'Planning' },
-  { name: 'Wedding', when: '23 Sept, 6:00 PM', vendor: 'Venue', status: 'Planning' },
+  { name: 'Mehendi', when: '21 Sept, 5:00 PM', status: 'Confirmed' },
+  { name: 'Sangeet', when: '22 Sept, 7:00 PM', status: 'Confirmed' },
+  { name: 'Haldi', when: '23 Sept, 10:00 AM', status: 'Planning' },
+  { name: 'Wedding', when: '23 Sept, 6:00 PM', status: 'Planning' },
 ]
 
-const formatINR = (amount) => '₹' + amount.toLocaleString('en-IN')
+const rsvp = [
+  { key: 'attending', icon: 'check', label: 'Attending', count: 96 },
+  { key: 'pending', icon: 'help', label: 'Pending', count: 31 },
+  { key: 'declined', icon: 'close', label: 'Declined', count: 16 },
+]
+
+const formatLakh = (amount) => `₹${amount / 100000}L`
 
 function DashboardPreview() {
-  const remaining = budget.total - budget.spent
   const spentPercent = Math.round((budget.spent / budget.total) * 100)
-  const largest = Math.max(...categories.map((c) => c.amount))
+  const totalGuests = rsvp.reduce((sum, group) => sum + group.count, 0)
 
   return (
     <section className="section" aria-labelledby="preview-title">
@@ -45,7 +42,7 @@ function DashboardPreview() {
           <div className="preview-bar">
             <span className="preview-dots" aria-hidden="true"><i /><i /><i /></span>
             <span className="preview-title">Wedding Overview</span>
-            <span className="badge">Demo data</span>
+            <span className="badge badge-demo">Demo Preview &middot; sample data</span>
           </div>
 
           <div className="preview-body">
@@ -67,77 +64,71 @@ function DashboardPreview() {
               </div>
             </div>
 
+            <ul className="stat-row panel-wide">
+              <li className="panel stat">
+                <span className="stat-icon"><Icon name="wallet" size={18} /></span>
+                <span className="stat-value">{formatLakh(budget.total)}</span>
+                <span className="stat-label">
+                  Budget &middot; {formatLakh(budget.spent)} spent ({spentPercent}%)
+                </span>
+              </li>
+              {stats.map((stat) => (
+                <li key={stat.label} className="panel stat">
+                  <span className="stat-icon"><Icon name={stat.icon} size={18} /></span>
+                  <span className="stat-value">{stat.value}</span>
+                  <span className="stat-label">{stat.label}</span>
+                </li>
+              ))}
+            </ul>
+
             <div className="panel">
-              <h3>Budget</h3>
-              <dl className="budget-figures">
-                <div><dt>Total Budget</dt><dd>{formatINR(budget.total)}</dd></div>
-                <div><dt>Spent</dt><dd>{formatINR(budget.spent)}</dd></div>
-                <div><dt>Remaining</dt><dd className="positive">{formatINR(remaining)}</dd></div>
-              </dl>
-
-              <div className="meter-row">
-                <span>Budget used</span>
-                <span>{spentPercent}%</span>
-              </div>
-              <div
-                className="meter"
-                role="progressbar"
-                aria-label="Budget used"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={spentPercent}
-              >
-                <span style={{ width: `${spentPercent}%` }} />
-              </div>
-
-              <h4>Spending by category</h4>
-              <ul className="category-list">
-                {categories.map((category) => (
-                  <li key={category.name}>
-                    <div className="meter-row">
-                      <span>{category.name}</span>
-                      <span>{formatINR(category.amount)}</span>
+              <h3>Upcoming Events</h3>
+              <ul className="event-list">
+                {upcoming.map((event) => (
+                  <li key={event.name}>
+                    <div>
+                      <p className="event-name">{event.name}</p>
+                      <p className="event-meta">{event.when}</p>
                     </div>
-                    <div className="meter meter-soft" aria-hidden="true">
-                      <span style={{ width: `${Math.round((category.amount / largest) * 100)}%` }} />
-                    </div>
+                    <span className={`chip chip-${event.status.toLowerCase()}`}>
+                      <Icon name={event.status === 'Confirmed' ? 'check' : 'clock'} size={13} />
+                      {event.status}
+                    </span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="preview-side">
-              <ul className="stat-row">
-                {stats.map((stat) => (
-                  <li key={stat.label} className="panel stat">
-                    <span className="stat-icon"><Icon name={stat.icon} size={18} /></span>
-                    <span className="stat-value">{stat.value}</span>
-                    <span className="stat-label">{stat.label}</span>
+            <div className="panel">
+              <h3>Guest RSVP</h3>
+              <div className="rsvp-bar" aria-hidden="true">
+                {rsvp.map((group) => (
+                  <span
+                    key={group.key}
+                    className={`rsvp-${group.key}`}
+                    style={{ width: `${(group.count / totalGuests) * 100}%` }}
+                  />
+                ))}
+              </div>
+              <ul className="rsvp-list">
+                {rsvp.map((group) => (
+                  <li key={group.key}>
+                    <span className={`rsvp-icon rsvp-${group.key}`}>
+                      <Icon name={group.icon} size={14} />
+                    </span>
+                    <span className="rsvp-label">{group.label}</span>
+                    <span className="rsvp-count">{group.count}</span>
                   </li>
                 ))}
               </ul>
-
-              <div className="panel">
-                <h3>Upcoming Events</h3>
-                <p className="panel-sub">September 2026</p>
-                <ul className="event-list">
-                  {upcoming.map((event) => (
-                    <li key={event.name}>
-                      <div>
-                        <p className="event-name">{event.name}</p>
-                        <p className="event-meta">{event.when} &middot; {event.vendor}</p>
-                      </div>
-                      <span className={`chip chip-${event.status.toLowerCase()}`}>
-                        <Icon name={event.status === 'Confirmed' ? 'check' : 'clock'} size={13} />
-                        {event.status}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <p className="panel-sub">{totalGuests} guests invited</p>
             </div>
 
           </div>
+
+          <p className="preview-note">
+            This is a demo preview. All numbers are sample data, not real platform statistics.
+          </p>
         </div>
       </div>
     </section>
