@@ -1,4 +1,7 @@
 {
+  "users": [
+    { "id": "1", "name": "Kanishk", "email": "123@gmail.com", "password": "123" }
+  ],
   "cities": [
     { "id": 1, "name": "Agra" },
     { "id": 2, "name": "Ahmedabad" },

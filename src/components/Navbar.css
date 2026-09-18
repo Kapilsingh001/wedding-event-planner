@@ -1,29 +1,51 @@
-.navbar{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 60px;
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 40px;
+  background: white;
+  border-bottom: 1px solid #fde2e7;
+  box-shadow: 0 2px 12px rgba(244, 115, 127, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.logo{
-    font-family: 'Playfair Display',serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--pink);
-
+.navbar-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--pink);
 }
 
-.nav-links{
-    display: flex;
-    gap: 32px;
+.navbar-links {
+  display: flex;
+  gap: 28px;
+  align-items: center;
 }
 
-.nav-links a{
-    color: var(--text-dark);
-    font-size: 15px;
-    transition: color 0.3s;
+.navbar-links a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dark);
+  transition: color 0.2s;
 }
 
-.nav-links a:hover{
-    color: var(--pink);
+.navbar-links a:hover {
+  color: var(--pink);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.navbar-greeting {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--pink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
