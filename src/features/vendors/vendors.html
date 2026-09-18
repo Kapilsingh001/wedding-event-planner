@@ -3,22 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Vivaha Directory — Vendor Listing</title>
+<title>Find Vendors for Your Dream Wedding</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vendors.css">
 </head>
 <body>
 
 <header class="vv-hero">
-  <div class="vv-eyebrow-row">
-    <span class="vv-eyebrow-dot"></span>
-    <span class="vv-eyebrow-text">CURATED ACROSS INDIA</span>
-    <span class="vv-eyebrow-dot"></span>
-  </div>
-  <h1 class="vv-title">The Vivaha Directory</h1>
-  <p class="vv-subtitle">Discover top-rated caterers, photographers, venues, decorators and more — handpicked across every city.</p>
+  <span class="vv-flower vv-flower-left">🌸</span>
+  <span class="vv-flower vv-flower-right">🌸</span>
+
+  <span class="vv-badge">
+    <svg viewBox="0 0 24 24" width="13" height="13"><path d="M12 21s-6.716-4.35-9.428-8.06C.86 10.42 1.2 6.9 4.1 5.2c2.2-1.28 4.9-.62 6.4 1.28 1.5-1.9 4.2-2.56 6.4-1.28 2.9 1.7 3.24 5.22 1.53 7.74C18.72 16.65 12 21 12 21Z"/></svg>
+    Curated Across India
+  </span>
+  <h1 class="vv-title">Find Vendors for Your<br>Dream <span>Wedding</span> 💍</h1>
+  <p class="vv-subtitle">Browse top-rated caterers, photographers, venues, decorators and more — everything you need to plan the big day.</p>
 </header>
 
 <main class="vv-container">
@@ -44,7 +46,7 @@
 
   <div class="vv-results-row">
     <div>
-      <h2 class="vv-results-heading">Vendors</h2>
+      <h2 class="vv-results-heading">Our Vendors</h2>
       <div class="vv-results-count" id="resultCount"></div>
     </div>
     <select class="vv-sort-select" id="sortSelect">
@@ -78,8 +80,8 @@
     { id: 15, name: "Symphony Strings", category: "Music", city: "Kolkata", price: 40000, rating: 4.5 }
   ];
 
-  const pinIcon = '<svg class="vv-icon" viewBox="0 0 24 24" width="12" height="12" style="fill:#7A1130"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z"/></svg>';
-  const starIcon = '<svg class="vv-icon" viewBox="0 0 24 24" width="13" height="13" style="fill:#C79A3E"><path d="M12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.6 5.8 21 7 14.1 2 9.3 9 8.5Z"/></svg>';
+  const pinIcon = '<svg class="vv-icon" viewBox="0 0 24 24" width="12" height="12" style="fill:#F43F65"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z"/></svg>';
+  const heartIcon = '<svg class="vv-icon" viewBox="0 0 24 24" width="13" height="13" style="fill:#F43F65"><path d="M12 21s-6.716-4.35-9.428-8.06C.86 10.42 1.2 6.9 4.1 5.2c2.2-1.28 4.9-.62 6.4 1.28 1.5-1.9 4.2-2.56 6.4-1.28 2.9 1.7 3.24 5.22 1.53 7.74C18.72 16.65 12 21 12 21Z"/></svg>';
 
   function categoryClass(category) {
     const map = { Catering: "catering", Photographer: "photographer", Venue: "venue", Decorator: "decorator", Music: "music" };
@@ -144,7 +146,7 @@
         <div>
           <div class="vv-card-header">
             <span class="vv-tag ${categoryClass(v.category)}">${v.category}</span>
-            <span class="vv-rating">${starIcon} ${v.rating.toFixed(1)}</span>
+            <span class="vv-rating">${heartIcon} ${v.rating.toFixed(1)}</span>
           </div>
           <h3 class="vv-card-title">${v.name}</h3>
           <div class="vv-city-row">${pinIcon} ${v.city}</div>
