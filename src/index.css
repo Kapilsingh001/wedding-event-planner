@@ -16,7 +16,7 @@
   --radius: 14px;
   --shadow: 0 6px 24px rgba(43, 37, 39, 0.06);
   --shadow-hover: 0 14px 32px rgba(43, 37, 39, 0.10);
-  --container: 1160px;
+  --container: 1200px;
 }
 
 *, *::before, *::after {
