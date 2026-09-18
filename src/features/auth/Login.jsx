@@ -20,7 +20,7 @@ export default function Login() {
       const users = await res.json();
       const user = users.find(u => u.password === password);
       if (!user) {
-        setError('Wrong email or password.');
+        setError('Wrong email or password. Please try again.');
       } else {
         saveUser(user);
         navigate('/');
@@ -35,29 +35,65 @@ export default function Login() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>Welcome <span>Back</span></h1>
-        <p className="auth-subtitle">Sign in to your account to continue</p>
-        {error && <div className="auth-error">{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className="auth-field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
+        {/* Header */}
+        <div className="auth-header">
+          <h1>Welcome <span>Back</span></h1>
+          <p className="auth-subtitle">Sign in to continue planning your perfect day</p>
+        </div>
+
+        <div className="auth-divider">✦</div>
+
+        {/* Error */}
+        {error && (
+          <div className="auth-error">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {error}
           </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          {/* Email */}
+          <div className="auth-field">
+            <label htmlFor="email">Email Address</label>
+            <div className="auth-input-wrap">
+              <span className="auth-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </span>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Password */}
           <div className="auth-field">
             <label htmlFor="password">Password</label>
             <div className="auth-input-wrap">
+              <span className="auth-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Enter your password"
+                required
               />
               <button
                 type="button"
@@ -80,10 +116,19 @@ export default function Login() {
               </button>
             </div>
           </div>
-          <button type="submit" className="btn auth-btn" disabled={loading}>
-            {loading ? 'Signing in...' : 'Login'}
+
+          <button type="submit" className="auth-btn" disabled={loading}>
+            {loading ? (
+              <>
+                <span className="auth-btn-spinner" />
+                <span>Signing in...</span>
+              </>
+            ) : (
+              'Login'
+            )}
           </button>
         </form>
+
         <p className="auth-switch">
           New here? <Link to="/register">Create an account</Link>
         </p>
