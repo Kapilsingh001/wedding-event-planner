@@ -1,1 +1,49 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap');
+
+:root {
+  --pink: #f4737f;
+  --pink-dark: #e85d6a;
+  --pink-light: #fff0f3;
+  --text-dark: #1f1f1f;
+  --text-gray: #666;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #fff0f3 0%, #fce4ec 50%, #fff8f9 100%);
+  min-height: 100vh;
+  color: var(--text-dark);
+}
+
+h1, h2, h3 {
+  font-family: 'Playfair Display', serif;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.btn {
+  background: var(--pink);
+  color: white;
+  padding: 12px 28px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.2s;
+  display: inline-block;
+}
+
+.btn:hover {
+  background: var(--pink-dark);
+}
