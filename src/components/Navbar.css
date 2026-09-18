@@ -1,0 +1,29 @@
+.navbar{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 60px;
+}
+
+.logo{
+    font-family: 'Playfair Display',serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--pink);
+
+}
+
+.nav-links{
+    display: flex;
+    gap: 32px;
+}
+
+.nav-links a{
+    color: var(--text-dark);
+    font-size: 15px;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover{
+    color: var(--pink);
+}
