@@ -19,7 +19,7 @@ function Footer() {
           <h2>Product</h2>
           <Link to="/vendors">Vendors</Link>
           <Link to="/events">Events</Link>
-          <Link to="/events">Budget</Link>
+        
           <Link to="/guests">Guests</Link>
         </nav>
 
