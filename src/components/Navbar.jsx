@@ -44,7 +44,7 @@ function Navbar() {
             <NavLink to="/" end>{user ? 'Dashboard' : 'Home'}</NavLink>
             <NavLink to="/vendors">Vendors</NavLink>
             <NavLink to="/events">Events</NavLink>
-            <Link to="/events">Budget</Link>
+          
             <NavLink to="/guests">Guests</NavLink>
           </nav>
 
