@@ -44,7 +44,7 @@ function Hero() {
         </div>
 
         <div className="hero-visual">
-          <p className="hero-sample">Example plan &middot; sample data</p>
+          {/* <p className="hero-sample">Example plan &middot; sample data</p> */}
           <img
             className="hero-photo"
             src="/images/hero.webp"
