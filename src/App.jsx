@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import Dashboard from './pages/Dashboard.jsx'
-import Guests from './pages/Guests.jsx'
+import Guests from './features/guests/Guests.jsx'
 import Login from './features/auth/Login.jsx'
 import Register from './features/auth/Register.jsx'
 import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
@@ -21,7 +21,7 @@ function App(){
           <Route path="/register" element={<Register />} />
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
-          <Route path="/guests" element={<Guests />} />
+          <Route path="/guests" element={<ProtectedRoute><Guests /></ProtectedRoute>} />
         </Routes>
       </main>
       <Footer />
