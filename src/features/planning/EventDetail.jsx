@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import AddExpenseForm from "./AddExpenseForm";
+import CreateEventForm from "./CreateEventForm";
+import BudgetChart from "./BudgetChart";
 
 const API_URL = "http://localhost:3001";
 
@@ -8,7 +10,10 @@ export default function EventDetail({ eventId, onBack }) {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [editingExpense, setEditingExpense] = useState(null);
+  const [showEditEventForm, setShowEditEventForm] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -32,9 +37,46 @@ export default function EventDetail({ eventId, onBack }) {
     fetchData();
   }, [eventId]);
 
-  const handleExpenseAdded = (newExpense) => {
-    setExpenses((prev) => [...prev, newExpense]);
+  // Used for both add and edit: replace if it exists, otherwise append
+  const handleExpenseSaved = (savedExpense) => {
+    setExpenses((prev) =>
+      prev.some((e) => e.id === savedExpense.id)
+        ? prev.map((e) => (e.id === savedExpense.id ? savedExpense : e))
+        : [...prev, savedExpense]
+    );
     setShowExpenseForm(false);
+    setEditingExpense(null);
+  };
+
+  const handleEventSaved = (savedEvent) => {
+    setEvent(savedEvent);
+    setShowEditEventForm(false);
+  };
+
+  const handleDeleteEvent = async () => {
+    if (!window.confirm("Delete this event and all its expenses?")) return;
+    setActionError("");
+    try {
+      const res = await fetch(`${API_URL}/events/${event.id}?_dependent=expenses`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      onBack();
+    } catch (err) {
+      setActionError("Could not delete the event. Please try again.");
+    }
+  };
+
+  const handleDeleteExpense = async (expenseId) => {
+    if (!window.confirm("Delete this expense?")) return;
+    setActionError("");
+    try {
+      const res = await fetch(`${API_URL}/expenses/${expenseId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed");
+      setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
+    } catch (err) {
+      setActionError("Could not delete the expense. Please try again.");
+    }
   };
 
   const formatCurrency = (value) =>
@@ -67,11 +109,21 @@ export default function EventDetail({ eventId, onBack }) {
     <div style={styles.page}>
       <button onClick={onBack} style={styles.backBtn}>← Back to Events</button>
 
+      {actionError && <div style={{ ...styles.alertError, marginBottom: "16px" }}>{actionError}</div>}
+
       <div style={styles.card}>
-        <span style={styles.badge}>{event.type}</span>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "26px", fontWeight: "700", color: "#1f1015", margin: "6px 0 4px" }}>
-          {event.title}
-        </h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+          <div>
+            <span style={styles.badge}>{event.type}</span>
+            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "26px", fontWeight: "700", color: "#1f1015", margin: "6px 0 4px" }}>
+              {event.title}
+            </h1>
+          </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => setShowEditEventForm(true)} style={styles.btnOutline}>Edit</button>
+            <button onClick={handleDeleteEvent} style={styles.btnDanger}>Delete</button>
+          </div>
+        </div>
         <p style={{ color: "#9f6b7a", margin: "2px 0" }}>{formatDate(event.date)}</p>
         <p style={{ color: "#9f6b7a", margin: "2px 0 16px" }}>{event.venue}</p>
 
@@ -81,6 +133,15 @@ export default function EventDetail({ eventId, onBack }) {
           <Stat label="Remaining" value={formatCurrency(remaining)} color={remaining < 0 ? "#dc2626" : "#059669"} />
         </div>
       </div>
+
+      {expenses.length > 0 && (
+        <div style={styles.card}>
+          <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "19px", fontWeight: "700", color: "#1f1015", marginBottom: "8px" }}>
+            Spending by Category
+          </h2>
+          <BudgetChart expenses={expenses} />
+        </div>
+      )}
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
         <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "19px", fontWeight: "700", color: "#1f1015" }}>
@@ -99,6 +160,7 @@ export default function EventDetail({ eventId, onBack }) {
                 <th style={styles.th}>Category</th>
                 <th style={styles.th}>Date</th>
                 <th style={{ ...styles.th, textAlign: "right" }}>Amount</th>
+                <th style={{ ...styles.th, textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -107,6 +169,10 @@ export default function EventDetail({ eventId, onBack }) {
                   <td style={styles.td}>{exp.category}</td>
                   <td style={styles.td}>{formatDate(exp.date)}</td>
                   <td style={{ ...styles.td, textAlign: "right", fontWeight: "600" }}>{formatCurrency(exp.amount)}</td>
+                  <td style={{ ...styles.td, textAlign: "right" }}>
+                    <button onClick={() => setEditingExpense(exp)} style={styles.btnTinyOutline}>Edit</button>
+                    <button onClick={() => handleDeleteExpense(exp.id)} style={styles.btnTinyDanger}>Delete</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -114,8 +180,25 @@ export default function EventDetail({ eventId, onBack }) {
         </div>
       )}
 
-      {showExpenseForm && (
-        <AddExpenseForm eventId={event.id} onClose={() => setShowExpenseForm(false)} onAdded={handleExpenseAdded} />
+      {(showExpenseForm || editingExpense) && (
+        <AddExpenseForm
+          key={editingExpense ? editingExpense.id : "new"}
+          eventId={event.id}
+          expense={editingExpense}
+          onClose={() => {
+            setShowExpenseForm(false);
+            setEditingExpense(null);
+          }}
+          onSaved={handleExpenseSaved}
+        />
+      )}
+
+      {showEditEventForm && (
+        <CreateEventForm
+          event={event}
+          onClose={() => setShowEditEventForm(false)}
+          onSaved={handleEventSaved}
+        />
       )}
     </div>
   );
@@ -179,6 +262,47 @@ const styles = {
     borderRadius: "999px",
     padding: "9px 18px",
     fontSize: "14px",
+    fontWeight: "600",
+    cursor: "pointer",
+  },
+  btnOutline: {
+    backgroundColor: "#fff",
+    color: "#f43f5e",
+    border: "1px solid #f43f5e",
+    borderRadius: "999px",
+    padding: "8px 18px",
+    fontSize: "14px",
+    fontWeight: "600",
+    cursor: "pointer",
+  },
+  btnDanger: {
+    backgroundColor: "#fee2e2",
+    color: "#b91c1c",
+    border: "1px solid #fecaca",
+    borderRadius: "999px",
+    padding: "8px 18px",
+    fontSize: "14px",
+    fontWeight: "600",
+    cursor: "pointer",
+  },
+  btnTinyOutline: {
+    backgroundColor: "#fff",
+    color: "#f43f5e",
+    border: "1px solid #f43f5e",
+    borderRadius: "999px",
+    padding: "4px 12px",
+    fontSize: "12px",
+    fontWeight: "600",
+    cursor: "pointer",
+    marginRight: "6px",
+  },
+  btnTinyDanger: {
+    backgroundColor: "#fee2e2",
+    color: "#b91c1c",
+    border: "1px solid #fecaca",
+    borderRadius: "999px",
+    padding: "4px 12px",
+    fontSize: "12px",
     fontWeight: "600",
     cursor: "pointer",
   },
