@@ -1,10 +1,19 @@
 import { useState } from "react";
+import { getUser } from "../auth/auth";
 
 const API_URL = "http://localhost:3001";
 const EVENT_TYPES = ["Wedding", "Engagement", "Reception", "Birthday", "Anniversary"];
 
-export default function CreateEventForm({ onClose, onCreated }) {
-  const [formData, setFormData] = useState({ title: "", type: "Wedding", date: "", venue: "", budget: "" });
+export default function CreateEventForm({ onClose, onSaved, event }) {
+  const isEdit = Boolean(event);
+
+  const [formData, setFormData] = useState({
+    title: event ? event.title : "",
+    type: event ? event.type : "Wedding",
+    date: event ? event.date : "",
+    venue: event ? event.venue : "",
+    budget: event ? event.budget : "",
+  });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,23 +35,38 @@ export default function CreateEventForm({ onClose, onCreated }) {
       return;
     }
 
+    const body = {
+      title: formData.title.trim(),
+      type: formData.type,
+      date: formData.date,
+      venue: formData.venue.trim(),
+      budget: Number(formData.budget),
+    };
+
     setSubmitting(true);
     try {
-      const response = await fetch(`${API_URL}/events`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: formData.title.trim(),
-          type: formData.type,
-          date: formData.date,
-          venue: formData.venue.trim(),
-          budget: Number(formData.budget),
-        }),
-      });
-      if (!response.ok) throw new Error("Failed to create event");
-      onCreated(await response.json());
+      let response;
+      if (isEdit) {
+        // PATCH: update only these fields (userId is not sent, so it stays unchanged)
+        response = await fetch(`${API_URL}/events/${event.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      } else {
+        const user = getUser();
+        if (!user) throw new Error("Not logged in");
+        // POST: create a new event owned by the logged-in user
+        response = await fetch(`${API_URL}/events`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...body, userId: user.id }),
+        });
+      }
+      if (!response.ok) throw new Error("Failed to save event");
+      onSaved(await response.json());
     } catch (err) {
-      setError("Could not create event. Please try again.");
+      setError(isEdit ? "Could not update event. Please try again." : "Could not create event. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -53,7 +77,7 @@ export default function CreateEventForm({ onClose, onCreated }) {
       <div style={styles.modal}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
           <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "21px", fontWeight: "700", color: "#1f1015" }}>
-            Create Event
+            {isEdit ? "Edit Event" : "Create Event"}
           </h2>
           <button onClick={onClose} style={styles.closeBtn}>✕</button>
         </div>
@@ -88,7 +112,7 @@ export default function CreateEventForm({ onClose, onCreated }) {
           <div style={{ display: "flex", gap: "10px", marginTop: "22px" }}>
             <button type="button" onClick={onClose} style={styles.btnSecondary}>Cancel</button>
             <button type="submit" disabled={submitting} style={{ ...styles.btnPrimary, opacity: submitting ? 0.7 : 1 }}>
-              {submitting ? "Creating..." : "Create"}
+              {submitting ? (isEdit ? "Saving..." : "Creating...") : (isEdit ? "Save" : "Create")}
             </button>
           </div>
         </form>
