@@ -9,6 +9,7 @@ import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import Vendors from './features/vendors/Vendors.jsx'
 import VendorDetail from './features/vendors/VendorDetail.jsx' // NEW
 import Events from './features/planning/Events.jsx'
+import Tasks from './pages/Tasks.jsx'
 
 function App(){
   return(
@@ -24,6 +25,8 @@ function App(){
           <Route path="/vendors/:id" element={<VendorDetail />} /> {/* NEW */}
           <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
           <Route path="/guests" element={<ProtectedRoute><Guests /></ProtectedRoute>} />
+          <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+
         </Routes>
       </main>
       <Footer />

@@ -18,6 +18,32 @@
   --shadow-hover: 0 14px 32px rgba(43, 37, 39, 0.10);
   --container: 1200px;
 }
+[data-theme='dark'] {
+  --bg: #181315;
+  --surface: #231C1F;
+  --pink: #F07C90;
+  --pink-dark: #E0566F;
+  --pink-deeper: #C93F59;
+  --pink-light: #3A252B;
+  --rose: #D99AA4;
+  --rose-dark: #E8B4BC;
+  --soft: #4A3439;
+  --text-dark: #F4EDEF;
+  --text-gray: #B9ADB0;
+  --border: #3A2F32;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 14px 32px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+/* These use the text colour as a background, which turns light in dark mode, so keep them dark */
+[data-theme='dark'] .footer,
+[data-theme='dark'] .hero-sample,
+[data-theme='dark'] .badge-demo,
+[data-theme='dark'] .skip-link {
+  background: #0F0B0D;
+}
+
 
 *, *::before, *::after {
   box-sizing: border-box;

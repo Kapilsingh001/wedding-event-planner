@@ -49,5 +49,6 @@
   ],
   "events": [],
   "expenses": [],
-  "guests": []
+  "guests": [],
+  "tasks":[]
 }
