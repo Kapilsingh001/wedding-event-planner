@@ -3,8 +3,14 @@ import { useState } from "react";
 const API_URL = "http://localhost:3001";
 const EXPENSE_CATEGORIES = ["Catering", "Decoration", "Photography", "Music", "Venue", "Gifts", "Transport", "Others"];
 
-export default function AddExpenseForm({ eventId, onClose, onAdded }) {
-  const [formData, setFormData] = useState({ category: "Catering", amount: "", date: "" });
+export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
+  const isEdit = Boolean(expense);
+
+  const [formData, setFormData] = useState({
+    category: expense ? expense.category : "Catering",
+    amount: expense ? expense.amount : "",
+    date: expense ? expense.date : "",
+  });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,17 +32,33 @@ export default function AddExpenseForm({ eventId, onClose, onAdded }) {
       return;
     }
 
+    const body = {
+      category: formData.category,
+      amount: Number(formData.amount),
+      date: formData.date,
+    };
+
     setSubmitting(true);
     try {
-      const response = await fetch(`${API_URL}/expenses`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId, category: formData.category, amount: Number(formData.amount), date: formData.date }),
-      });
-      if (!response.ok) throw new Error("Failed to add expense");
-      onAdded(await response.json());
+      let response;
+      if (isEdit) {
+        // PATCH: update only these fields (eventId is not sent, so it stays unchanged)
+        response = await fetch(`${API_URL}/expenses/${expense.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      } else {
+        response = await fetch(`${API_URL}/expenses`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ eventId, ...body }),
+        });
+      }
+      if (!response.ok) throw new Error("Failed to save expense");
+      onSaved(await response.json());
     } catch (err) {
-      setError("Could not add expense. Please try again.");
+      setError(isEdit ? "Could not update expense. Please try again." : "Could not add expense. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -47,7 +69,7 @@ export default function AddExpenseForm({ eventId, onClose, onAdded }) {
       <div style={styles.modal}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
           <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "21px", fontWeight: "700", color: "#1f1015" }}>
-            Add Expense
+            {isEdit ? "Edit Expense" : "Add Expense"}
           </h2>
           <button onClick={onClose} style={styles.closeBtn}>✕</button>
         </div>
@@ -77,7 +99,7 @@ export default function AddExpenseForm({ eventId, onClose, onAdded }) {
           <div style={{ display: "flex", gap: "10px", marginTop: "22px" }}>
             <button type="button" onClick={onClose} style={styles.btnSecondary}>Cancel</button>
             <button type="submit" disabled={submitting} style={{ ...styles.btnPrimary, opacity: submitting ? 0.7 : 1 }}>
-              {submitting ? "Adding..." : "Add Expense"}
+              {submitting ? (isEdit ? "Saving..." : "Adding...") : (isEdit ? "Save" : "Add Expense")}
             </button>
           </div>
         </form>
@@ -85,6 +107,7 @@ export default function AddExpenseForm({ eventId, onClose, onAdded }) {
     </div>
   );
 }
+//-------- Css of this page
 
 const styles = {
   overlay: {
