@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import CreateEventForm from "./CreateEventForm";
 import EventDetail from "./EventDetail";
+import { getUser } from "../auth/auth";
 
 const API_URL = "http://localhost:3001";
 
@@ -23,7 +24,10 @@ export default function Events() {
       if (!eventsRes.ok || !expensesRes.ok) {
         throw new Error("Failed to fetch data from server");
       }
-      setEvents(await eventsRes.json());
+      const allEvents = await eventsRes.json();
+      const user = getUser();
+      // Filter in JavaScript: keep only the logged-in user's events
+      setEvents(allEvents.filter((event) => user && event.userId === user.id));
       setExpenses(await expensesRes.json());
     } catch (err) {
       setError("Could not load events. Make sure JSON Server is running on port 3001.");
@@ -39,8 +43,12 @@ export default function Events() {
   const getTotalSpent = (eventId) =>
     expenses.filter((exp) => exp.eventId === eventId).reduce((sum, exp) => sum + Number(exp.amount), 0);
 
-  const handleEventCreated = (newEvent) => {
-    setEvents((prev) => [...prev, newEvent]);
+  const handleEventSaved = (savedEvent) => {
+    setEvents((prev) =>
+      prev.some((e) => e.id === savedEvent.id)
+        ? prev.map((e) => (e.id === savedEvent.id ? savedEvent : e))
+        : [...prev, savedEvent]
+    );
     setShowCreateForm(false);
   };
 
@@ -117,7 +125,7 @@ export default function Events() {
       </div>
 
       {showCreateForm && (
-        <CreateEventForm onClose={() => setShowCreateForm(false)} onCreated={handleEventCreated} />
+        <CreateEventForm onClose={() => setShowCreateForm(false)} onSaved={handleEventSaved} />
       )}
     </div>
   );
