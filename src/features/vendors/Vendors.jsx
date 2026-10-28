@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getShortlist, toggleShortlist } from './shortlist';
 
 const API_BASE_URL = 'http://localhost:3001';
 
@@ -26,6 +27,23 @@ const CATEGORY_STYLES = {
 };
 const DEFAULT_CATEGORY_STYLE = { color: '#8B7A82', background: '#F3EBEE' };
 
+// Returns true if the price falls inside the selected budget range
+function matchesPriceRange(range, price) {
+  const p = Number(price);
+  switch (range) {
+    case 'under50':
+      return p < 50000;
+    case '50to100':
+      return p >= 50000 && p <= 100000;
+    case '100to200':
+      return p > 100000 && p <= 200000;
+    case 'above200':
+      return p > 200000;
+    default:
+      return true;
+  }
+}
+
 const PinIcon = () => (
   <svg viewBox="0 0 24 24" width="12" height="12" style={{ fill: '#F43F65', flexShrink: 0 }}>
     <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z" />
@@ -41,6 +59,17 @@ const HeartIcon = () => (
     <path d="M12 21s-6.716-4.35-9.428-8.06C.86 10.42 1.2 6.9 4.1 5.2c2.2-1.28 4.9-.62 6.4 1.28 1.5-1.9 4.2-2.56 6.4-1.28 2.9 1.7 3.24 5.22 1.53 7.74C18.72 16.65 12 21 12 21Z" />
   </svg>
 );
+// Heart used for the shortlist button: outline when not saved, filled when saved
+const ShortlistHeart = ({ filled, size = 16 }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    style={{ fill: filled ? '#F43F65' : 'none', stroke: '#F43F65', strokeWidth: 2 }}
+  >
+    <path d="M12 21s-6.716-4.35-9.428-8.06C.86 10.42 1.2 6.9 4.1 5.2c2.2-1.28 4.9-.62 6.4 1.28 1.5-1.9 4.2-2.56 6.4-1.28 2.9 1.7 3.24 5.22 1.53 7.74C18.72 16.65 12 21 12 21Z" />
+  </svg>
+);
 
 export default function Vendors() {
   useThemeFonts();
@@ -53,6 +82,12 @@ export default function Vendors() {
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('default');
+
+  // New in phase 2
+  const [priceRange, setPriceRange] = useState('any');
+  const [minRating, setMinRating] = useState('any');
+  const [shortlist, setShortlist] = useState(() => getShortlist());
+  const [showShortlisted, setShowShortlisted] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -104,8 +139,13 @@ export default function Vendors() {
     fetchVendors();
   }, [selectedCity, selectedCategory]);
 
-  let filteredVendors = vendors.filter((vendor) =>
-    vendor.name.toLowerCase().includes(searchTerm.toLowerCase().trim())
+  // Name search + price range + minimum rating (+ shortlist toggle), all in JavaScript
+  let filteredVendors = vendors.filter(
+    (vendor) =>
+      vendor.name.toLowerCase().includes(searchTerm.toLowerCase().trim()) &&
+      matchesPriceRange(priceRange, vendor.price) &&
+      (minRating === 'any' || Number(vendor.rating) >= Number(minRating)) &&
+      (!showShortlisted || shortlist.includes(String(vendor.id)))
   );
 
   if (sortBy === 'rating-desc') {
@@ -121,6 +161,16 @@ export default function Vendors() {
     setSelectedCity('');
     setSelectedCategory('');
     setSortBy('default');
+    setPriceRange('any');
+    setMinRating('any');
+    setShowShortlisted(false);
+  };
+
+  // The card is a <Link>, so stop the click from opening the detail page
+  const handleToggleShortlist = (e, vendorId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShortlist(toggleShortlist(vendorId));
   };
 
   // ---------- styles ----------
@@ -250,6 +300,8 @@ export default function Vendors() {
   };
   const resultsCountStyle = { fontSize: '13.5px', color: '#8B7A82' };
 
+  const rightControlsStyle = { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' };
+
   const sortSelectStyle = {
     fontFamily: "'Poppins', sans-serif",
     fontSize: '13.5px',
@@ -259,6 +311,21 @@ export default function Vendors() {
     borderRadius: '20px',
     padding: '8px 16px',
     cursor: 'pointer',
+  };
+
+  const shortlistToggleStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '7px',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '13.5px',
+    fontWeight: 600,
+    padding: '8px 18px',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    border: showShortlisted ? '1px solid transparent' : '1px solid #F43F65',
+    background: showShortlisted ? 'linear-gradient(135deg, #FF8FA3, #F43F65)' : '#FFFFFF',
+    color: showShortlisted ? '#FFFFFF' : '#F43F65',
   };
 
   const gridStyle = {
@@ -283,6 +350,7 @@ export default function Vendors() {
   });
 
   const cardHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' };
+  const cardHeaderRightStyle = { display: 'flex', alignItems: 'center', gap: '8px' };
 
   const categoryPillStyle = (category) => ({
     fontSize: '12px',
@@ -303,6 +371,19 @@ export default function Vendors() {
     padding: '5px 10px',
     borderRadius: '20px',
   };
+
+  const heartButtonStyle = (saved) => ({
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    padding: 0,
+    border: '1px solid #FCE1E7',
+    backgroundColor: saved ? '#FFE3E9' : '#FFFFFF',
+  });
 
   const cardTitleStyle = {
     fontFamily: "'Playfair Display', serif",
@@ -387,6 +468,25 @@ export default function Vendors() {
               ))}
             </select>
           </div>
+
+          <div style={selectWrapStyle}>
+            <select value={priceRange} onChange={(e) => setPriceRange(e.target.value)} style={selectStyle}>
+              <option value="any">Any budget</option>
+              <option value="under50">Under ₹50,000</option>
+              <option value="50to100">₹50,000 - 1,00,000</option>
+              <option value="100to200">₹1,00,000 - 2,00,000</option>
+              <option value="above200">Above ₹2,00,000</option>
+            </select>
+          </div>
+
+          <div style={selectWrapStyle}>
+            <select value={minRating} onChange={(e) => setMinRating(e.target.value)} style={selectStyle}>
+              <option value="any">Any rating</option>
+              <option value="4.5">4.5+</option>
+              <option value="4.7">4.7+</option>
+              <option value="4.9">4.9+</option>
+            </select>
+          </div>
         </div>
 
         <div style={resultsRowStyle}>
@@ -397,12 +497,24 @@ export default function Vendors() {
                 `${filteredVendors.length} ${filteredVendors.length === 1 ? 'vendor' : 'vendors'} found`}
             </div>
           </div>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={sortSelectStyle}>
-            <option value="default">Sort: Featured</option>
-            <option value="rating-desc">Rating: High to low</option>
-            <option value="price-asc">Price: Low to high</option>
-            <option value="price-desc">Price: High to low</option>
-          </select>
+
+          <div style={rightControlsStyle}>
+            <button
+              type="button"
+              style={shortlistToggleStyle}
+              onClick={() => setShowShortlisted((prev) => !prev)}
+            >
+              <ShortlistHeart filled={showShortlisted} size={15} />
+              {showShortlisted ? 'Showing shortlisted only' : 'Show shortlisted only'}
+            </button>
+
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={sortSelectStyle}>
+              <option value="default">Sort: Featured</option>
+              <option value="rating-desc">Rating: High to low</option>
+              <option value="price-asc">Price: Low to high</option>
+              <option value="price-desc">Price: High to low</option>
+            </select>
+          </div>
         </div>
 
         {loading && (
@@ -421,40 +533,54 @@ export default function Vendors() {
         {!loading && !error && filteredVendors.length === 0 && (
           <div style={statusWrapStyle}>
             <h3 style={statusHeadingStyle}>No vendors match your search</h3>
-            <p>Try a different city, category, or clear your search.</p>
+            <p>Try a different city, category, budget or rating, or clear your filters.</p>
             <button style={resetButtonStyle} onClick={resetFilters}>Clear filters</button>
           </div>
         )}
 
         {!loading && !error && filteredVendors.length > 0 && (
           <div style={gridStyle}>
-            {filteredVendors.map((vendor) => (
-              <Link
-                key={vendor.id}
-                to={`/vendors/${vendor.id}`}
-                style={getCardStyle(vendor.id)}
-                onMouseEnter={() => setHoveredCardId(vendor.id)}
-                onMouseLeave={() => setHoveredCardId(null)}
-              >
-                <div>
-                  <div style={cardHeaderStyle}>
-                    <span style={categoryPillStyle(vendor.category)}>{vendor.category}</span>
-                    <span style={ratingBadgeStyle}>
-                      <HeartIcon /> {Number(vendor.rating).toFixed(1)}
-                    </span>
+            {filteredVendors.map((vendor) => {
+              const saved = shortlist.includes(String(vendor.id));
+              return (
+                <Link
+                  key={vendor.id}
+                  to={`/vendors/${vendor.id}`}
+                  style={getCardStyle(vendor.id)}
+                  onMouseEnter={() => setHoveredCardId(vendor.id)}
+                  onMouseLeave={() => setHoveredCardId(null)}
+                >
+                  <div>
+                    <div style={cardHeaderStyle}>
+                      <span style={categoryPillStyle(vendor.category)}>{vendor.category}</span>
+                      <div style={cardHeaderRightStyle}>
+                        <span style={ratingBadgeStyle}>
+                          <HeartIcon /> {Number(vendor.rating).toFixed(1)}
+                        </span>
+                        <button
+                          type="button"
+                          style={heartButtonStyle(saved)}
+                          onClick={(e) => handleToggleShortlist(e, vendor.id)}
+                          aria-label={saved ? 'Remove from shortlist' : 'Add to shortlist'}
+                          title={saved ? 'Remove from shortlist' : 'Add to shortlist'}
+                        >
+                          <ShortlistHeart filled={saved} />
+                        </button>
+                      </div>
+                    </div>
+                    <h3 style={cardTitleStyle}>{vendor.name}</h3>
+                    <div style={cityRowStyle}>
+                      <PinIcon /> {vendor.city}
+                    </div>
                   </div>
-                  <h3 style={cardTitleStyle}>{vendor.name}</h3>
-                  <div style={cityRowStyle}>
-                    <PinIcon /> {vendor.city}
-                  </div>
-                </div>
 
-                <div style={cardFooterStyle}>
-                  <span style={priceLabelStyle}>STARTING PRICE</span>
-                  <span style={priceStyle}>₹{Number(vendor.price).toLocaleString('en-IN')}</span>
-                </div>
-              </Link>
-            ))}
+                  <div style={cardFooterStyle}>
+                    <span style={priceLabelStyle}>STARTING PRICE</span>
+                    <span style={priceStyle}>₹{Number(vendor.price).toLocaleString('en-IN')}</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
