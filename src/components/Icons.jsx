@@ -21,6 +21,9 @@ const paths = {
   flower: <><circle cx="12" cy="12" r="2.5" /><circle cx="12" cy="5.5" r="3" /><circle cx="12" cy="18.5" r="3" /><circle cx="5.5" cy="12" r="3" /><circle cx="18.5" cy="12" r="3" /></>,
   sparkles: <><path d="M12 3 13.9 8.6a2 2 0 0 0 1.5 1.5L21 12l-5.6 1.9a2 2 0 0 0-1.5 1.5L12 21l-1.9-5.6a2 2 0 0 0-1.5-1.5L3 12l5.6-1.9a2 2 0 0 0 1.5-1.5Z" /><path d="M19 3v4" /><path d="M21 5h-4" /></>,
   music: <><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></>,
+    sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></>,
+  moon: <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />,
+
 }
 
 function Icon({ name, size = 20, label }) {

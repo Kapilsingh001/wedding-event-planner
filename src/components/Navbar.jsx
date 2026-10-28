@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { getUser, logout } from '../features/auth/auth'
+import { getTheme, applyTheme } from '../theme.js'
 import Icon from './Icons.jsx'
 import './Navbar.css'
 
 function Navbar() {
   const [open, setOpen] = useState(false)
+  const [theme, setTheme] = useState(getTheme())
   const navigate = useNavigate()
   useLocation()
   const user = getUser()
@@ -14,6 +16,12 @@ function Navbar() {
   function handleLogout() {
     logout()
     navigate('/login')
+  }
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    applyTheme(next)
+    setTheme(next)
   }
 
   return (
@@ -44,11 +52,18 @@ function Navbar() {
             <NavLink to="/" end>{user ? 'Dashboard' : 'Home'}</NavLink>
             <NavLink to="/vendors">Vendors</NavLink>
             <NavLink to="/events">Events</NavLink>
-          
             <NavLink to="/guests">Guests</NavLink>
           </nav>
 
           <div className="navbar-actions">
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            >
+              <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} />
+            </button>
             {user ? (
               <>
                 <span className="navbar-user">
