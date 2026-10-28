@@ -53,6 +53,8 @@ function Navbar() {
             <NavLink to="/vendors">Vendors</NavLink>
             <NavLink to="/events">Events</NavLink>
             <NavLink to="/guests">Guests</NavLink>
+            <NavLink to="/tasks">Tasks</NavLink>
+
           </nav>
 
           <div className="navbar-actions">

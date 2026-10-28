@@ -8,6 +8,7 @@ import Register from './features/auth/Register.jsx'
 import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import Vendors from './features/vendors/Vendors.jsx'
 import Events from './features/planning/Events.jsx'
+import Tasks from './pages/Tasks.jsx'
 
 function App(){
   return(
@@ -22,6 +23,8 @@ function App(){
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
           <Route path="/guests" element={<Guests />} />
+          <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+
         </Routes>
       </main>
       <Footer />
