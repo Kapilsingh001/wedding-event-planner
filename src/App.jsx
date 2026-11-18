@@ -7,9 +7,10 @@ import Login from './features/auth/Login.jsx'
 import Register from './features/auth/Register.jsx'
 import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import Vendors from './features/vendors/Vendors.jsx'
-import VendorDetail from './features/vendors/VendorDetail.jsx' // NEW
+import VendorDetail from './features/vendors/VendorDetail.jsx'
 import Events from './features/planning/Events.jsx'
 import Tasks from './pages/Tasks.jsx'
+import NotFound from './pages/NotFound.jsx'
 
 function App(){
   return(
@@ -22,11 +23,11 @@ function App(){
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/vendors" element={<Vendors />} />
-          <Route path="/vendors/:id" element={<VendorDetail />} /> {/* NEW */}
+          <Route path="/vendors/:id" element={<VendorDetail />} />
           <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
           <Route path="/guests" element={<ProtectedRoute><Guests /></ProtectedRoute>} />
           <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
-
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <Footer />
