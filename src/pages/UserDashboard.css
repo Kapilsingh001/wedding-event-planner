@@ -1,0 +1,272 @@
+.dash {
+  padding-top: 40px;
+  padding-bottom: 64px;
+}
+
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.dash-eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pink-dark);
+  margin-bottom: 6px;
+}
+
+.dash-header h1 {
+  font-size: 36px;
+  margin-bottom: 6px;
+}
+
+.dash-sub,
+.dash-muted {
+  color: var(--text-gray);
+}
+
+.dash-error {
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #C0392B;
+  background: #FDECEA;
+}
+
+[data-theme='dark'] .dash-error {
+  color: #FF9B9B;
+  background: #3D1F22;
+}
+
+/* ---------- 4 stat cards ---------- */
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dash-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.dash-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.dash-card-top h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-gray);
+}
+
+.dash-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--pink-dark);
+  background: var(--pink-light);
+}
+
+.dash-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.dash-number span {
+  font-size: 18px;
+  color: var(--text-gray);
+}
+
+.dash-detail {
+  font-size: 14px;
+  color: var(--text-gray);
+}
+
+.dash-detail strong {
+  color: var(--text-dark);
+}
+
+.dash-over {
+  color: #C0392B;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .dash-over {
+  color: #FF8A80;
+}
+
+.dash-bar {
+  height: 8px;
+  margin: 4px 0;
+  border-radius: 999px;
+  background: var(--pink-light);
+  overflow: hidden;
+}
+
+.dash-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--pink-dark);
+  transition: width 0.3s;
+}
+
+.dash-bar-fill.over {
+  background: #C0392B;
+}
+
+.dash-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pink-dark);
+}
+
+.dash-link:hover {
+  color: var(--pink-deeper);
+}
+
+/* ---------- lower panels ---------- */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.dash-panel {
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.dash-panel h2 {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.dash-panel a {
+  color: var(--pink-dark);
+  font-weight: 600;
+}
+
+.dash-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.dash-list li:first-child {
+  border-top: none;
+}
+
+.dash-list li a {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dash-list li a strong {
+  color: var(--text-dark);
+}
+
+.dash-list small {
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  color: var(--text-gray);
+}
+
+.dash-list small.dash-over {
+  font-weight: 600;
+  color: #C0392B;
+}
+
+[data-theme='dark'] .dash-list small.dash-over {
+  color: #FF8A80;
+}
+
+.dash-price {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--pink-dark);
+}
+
+.dash-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.dash-actions a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.dash-actions a:hover {
+  background: var(--pink-light);
+  border-color: var(--soft);
+}
+
+@media (max-width: 1000px) {
+  .dash-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .dash-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-header h1 {
+    font-size: 30px;
+  }
+}
