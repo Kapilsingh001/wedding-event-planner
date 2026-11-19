@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import api from '../../services/api';
 import { getShortlist, toggleShortlist } from './shortlist';
-
-const API_BASE_URL = 'http://localhost:3001';
 
 function useThemeFonts() {
   useEffect(() => {
@@ -110,32 +109,31 @@ export default function VendorDetail() {
       setSimilar([]);
 
       try {
-        const response = await fetch(`${API_BASE_URL}/vendors/${id}`);
-
-        if (response.status === 404) {
-          if (!cancelled) setNotFound(true);
-          return;
+        let data;
+        try {
+          const response = await api.get(`/vendors/${id}`);
+          data = response.data;
+        } catch (err) {
+          // Axios throws on 404, so check the status here
+          if (err.response && err.response.status === 404) {
+            if (!cancelled) setNotFound(true);
+            return;
+          }
+          throw err;
         }
-        if (!response.ok) {
-          throw new Error(`Server status error: ${response.status}`);
-        }
 
-        const data = await response.json();
         if (cancelled) return;
         setVendor(data);
 
         // Similar vendors: same category, not this vendor, max 3
         try {
-          const allRes = await fetch(`${API_BASE_URL}/vendors`);
-          if (allRes.ok) {
-            const all = await allRes.json();
-            if (!cancelled) {
-              setSimilar(
-                all
-                  .filter((v) => v.category === data.category && String(v.id) !== String(data.id))
-                  .slice(0, 3)
-              );
-            }
+          const { data: all } = await api.get('/vendors');
+          if (!cancelled) {
+            setSimilar(
+              all
+                .filter((v) => v.category === data.category && String(v.id) !== String(data.id))
+                .slice(0, 3)
+            );
           }
         } catch (err) {
           console.warn('Could not load similar vendors');
