@@ -1,28 +1,47 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { API_URL, saveUser } from './auth';
+import { useDispatch } from 'react-redux';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import api from '../../services/api';
+import { saveUser } from './auth';
+import { loginSuccess } from './authSlice';
+import { loginSchema } from './authSchemas';
 import './Auth.css';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  async function onSubmit(formData) {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/users?email=${encodeURIComponent(email)}`);
-      const users = await res.json();
-      const user = users.find(u => u.password === password);
+      const { data: users } = await api.get('/users', {
+        params: { email: formData.email },
+      });
+      const user = users.find((u) => u.password === formData.password);
       if (!user) {
         setError('Wrong email or password. Please try again.');
       } else {
+        const { password: _, ...userWithoutPassword } = user;
         saveUser(user);
+        dispatch(loginSuccess(userWithoutPassword));
         navigate('/');
       }
     } catch {
@@ -55,7 +74,7 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Email */}
           <div className="auth-field">
             <label htmlFor="email">Email Address</label>
@@ -69,12 +88,15 @@ export default function Login() {
               <input
                 id="email"
                 type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                {...register('email')}
                 placeholder="you@example.com"
-                required
               />
             </div>
+            {errors.email && (
+              <span className="auth-field-error" style={{ color: '#c0392b', fontSize: '12px', marginTop: '4px' }}>
+                {errors.email.message}
+              </span>
+            )}
           </div>
 
           {/* Password */}
@@ -90,15 +112,13 @@ export default function Login() {
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
+                {...register('password')}
                 placeholder="Enter your password"
-                required
               />
               <button
                 type="button"
                 className="auth-eye"
-                onClick={() => setShowPassword(p => !p)}
+                onClick={() => setShowPassword((p) => !p)}
                 aria-label="Toggle password visibility"
               >
                 {showPassword ? (
@@ -115,6 +135,11 @@ export default function Login() {
                 )}
               </button>
             </div>
+            {errors.password && (
+              <span className="auth-field-error" style={{ color: '#c0392b', fontSize: '12px', marginTop: '4px' }}>
+                {errors.password.message}
+              </span>
+            )}
           </div>
 
           <button type="submit" className="auth-btn" disabled={loading}>
