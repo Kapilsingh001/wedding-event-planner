@@ -1,23 +1,41 @@
 import { useState, useEffect, useMemo } from 'react';
-import { API_URL, getUser } from '../auth/auth.js';
+import { useSelector } from 'react-redux';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import api from '../../services/api';
+import { getUser } from '../auth/auth.js';
+import { guestSchema } from './guestSchema.js';
+import { countByRsvp } from './guestUtils.js';
 import './Guests.css';
 
 export default function Guests() {
-  const user = getUser();
+  const reduxUser = useSelector((state) => state.auth?.user);
+  const user = reduxUser || getUser();
+
   const [guests, setGuests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
-
-  // Form state
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [side, setSide] = useState('Bride');
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Filter & Search state
   const [searchTerm, setSearchTerm] = useState('');
   const [rsvpFilter, setRsvpFilter] = useState('All');
+
+  // React Hook Form for adding guests
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(guestSchema),
+    defaultValues: {
+      name: '',
+      phone: '',
+      side: 'Bride',
+    },
+  });
 
   // Load guests on mount
   useEffect(() => {
@@ -27,11 +45,7 @@ export default function Guests() {
       setLoading(true);
       setFetchError('');
       try {
-        const res = await fetch(`${API_URL}/guests`);
-        if (!res.ok) {
-          throw new Error('Failed to fetch guests');
-        }
-        const data = await res.json();
+        const { data } = await api.get('/guests');
         if (isMounted) {
           const userGuests = data.filter((g) => String(g.userId) === String(user?.id));
           setGuests(userGuests);
@@ -54,55 +68,26 @@ export default function Guests() {
     };
   }, [user?.id]);
 
-  // Summary counts
-  const totalCount = guests.length;
-  const attendingCount = guests.filter((g) => g.rsvp === 'Attending').length;
-  const declinedCount = guests.filter((g) => g.rsvp === 'Declined').length;
-  const pendingCount = guests.filter((g) => g.rsvp === 'Pending').length;
+  // Summary counts using guestUtils
+  const { total: totalCount, Attending: attendingCount, Declined: declinedCount, Pending: pendingCount } = countByRsvp(guests);
 
   // Add guest submit handler
-  const handleAddGuest = async (e) => {
-    e.preventDefault();
+  const onAddGuest = async (formData) => {
     setFormError('');
-
-    const trimmedName = name.trim();
-    const trimmedPhone = phone.trim();
-
-    if (!trimmedName) {
-      setFormError('Guest name is required.');
-      return;
-    }
-
-    if (trimmedPhone && !/^\d{10}$/.test(trimmedPhone)) {
-      setFormError('Phone number must be exactly 10 digits.');
-      return;
-    }
+    setSubmitting(true);
 
     const newGuest = {
       userId: user?.id,
-      name: trimmedName,
-      phone: trimmedPhone,
-      side: side,
+      name: formData.name.trim(),
+      phone: formData.phone ? formData.phone.trim() : '',
+      side: formData.side,
       rsvp: 'Pending',
     };
 
-    setSubmitting(true);
     try {
-      const res = await fetch(`${API_URL}/guests`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newGuest),
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to add guest');
-      }
-
-      const createdGuest = await res.json();
+      const { data: createdGuest } = await api.post('/guests', newGuest);
       setGuests((prev) => [...prev, createdGuest]);
-      setName('');
-      setPhone('');
-      setSide('Bride');
+      reset({ name: '', phone: '', side: 'Bride' });
       setFormError('');
     } catch {
       setFormError('Failed to add guest. Is JSON Server running on port 3001?');
@@ -114,16 +99,7 @@ export default function Guests() {
   // Immediate RSVP update handler (PATCH)
   const handleRsvpChange = async (guestId, newRsvp) => {
     try {
-      const res = await fetch(`${API_URL}/guests/${guestId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rsvp: newRsvp }),
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to update RSVP');
-      }
-
+      await api.patch(`/guests/${guestId}`, { rsvp: newRsvp });
       setGuests((prev) =>
         prev.map((g) => (g.id === guestId ? { ...g, rsvp: newRsvp } : g))
       );
@@ -138,14 +114,7 @@ export default function Guests() {
     if (!confirmed) return;
 
     try {
-      const res = await fetch(`${API_URL}/guests/${guestId}`, {
-        method: 'DELETE',
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to delete guest');
-      }
-
+      await api.delete(`/guests/${guestId}`);
       setGuests((prev) => prev.filter((g) => g.id !== guestId));
     } catch {
       alert('Could not delete guest. Please check if JSON Server is running.');
@@ -201,7 +170,7 @@ export default function Guests() {
           </div>
         )}
 
-        <form onSubmit={handleAddGuest} className="guests-form" noValidate>
+        <form onSubmit={handleSubmit(onAddGuest)} className="guests-form" noValidate>
           <div className="guests-form-grid">
             <div className="guests-form-group">
               <label htmlFor="guest-name" className="guests-label">
@@ -212,10 +181,13 @@ export default function Guests() {
                 type="text"
                 className="guests-input"
                 placeholder="e.g. Rahul Sharma"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
+                {...register('name')}
               />
+              {errors.name && (
+                <span className="guests-field-error" style={{ color: '#c93f59', fontSize: '12px', marginTop: '4px' }}>
+                  {errors.name.message}
+                </span>
+              )}
             </div>
 
             <div className="guests-form-group">
@@ -227,9 +199,13 @@ export default function Guests() {
                 type="tel"
                 className="guests-input"
                 placeholder="e.g. 9876543210"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                {...register('phone')}
               />
+              {errors.phone && (
+                <span className="guests-field-error" style={{ color: '#c93f59', fontSize: '12px', marginTop: '4px' }}>
+                  {errors.phone.message}
+                </span>
+              )}
             </div>
 
             <div className="guests-form-group">
@@ -239,12 +215,16 @@ export default function Guests() {
               <select
                 id="guest-side"
                 className="guests-select"
-                value={side}
-                onChange={(e) => setSide(e.target.value)}
+                {...register('side')}
               >
                 <option value="Bride">Bride</option>
                 <option value="Groom">Groom</option>
               </select>
+              {errors.side && (
+                <span className="guests-field-error" style={{ color: '#c93f59', fontSize: '12px', marginTop: '4px' }}>
+                  {errors.side.message}
+                </span>
+              )}
             </div>
           </div>
 
