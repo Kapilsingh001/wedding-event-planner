@@ -1,51 +1,50 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { API_URL } from './auth';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import api from '../../services/api';
+import { registerSchema } from './authSchemas';
 import './Auth.css';
 
 export default function Register() {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  function validate() {
-    if (!name.trim() || !email.trim() || !password.trim() || !confirm.trim())
-      return 'All fields are required.';
-    if (!email.includes('@') || !email.includes('.'))
-      return 'Please enter a valid email address.';
-    if (password.length < 6)
-      return 'Password must be at least 6 characters.';
-    if (password !== confirm)
-      return 'Passwords do not match.';
-    return null;
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirm: '',
+    },
+  });
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function onSubmit(formData) {
     setError('');
     setSuccess('');
-    const validationError = validate();
-    if (validationError) { setError(validationError); return; }
     setLoading(true);
     try {
-      const checkRes = await fetch(`${API_URL}/users?email=${encodeURIComponent(email)}`);
-      const existing = await checkRes.json();
-      if (existing.length > 0) {
+      const { data: existing } = await api.get('/users', {
+        params: { email: formData.email.trim() },
+      });
+      if (existing && existing.length > 0) {
         setError('This email is already registered.');
         setLoading(false);
         return;
       }
-      await fetch(`${API_URL}/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+      await api.post('/users', {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
       });
       setSuccess('Account created! Redirecting to login...');
       setTimeout(() => navigate('/login'), 1500);
@@ -56,18 +55,19 @@ export default function Register() {
     }
   }
 
-  const EyeIcon = ({ visible }) => visible ? (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>
-    </svg>
-  ) : (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-  );
+  const EyeIcon = ({ visible }) =>
+    visible ? (
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+      </svg>
+    ) : (
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    );
 
   return (
     <div className="auth-page">
@@ -94,7 +94,7 @@ export default function Register() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Full Name */}
           <div className="auth-field">
             <label htmlFor="name">Full Name</label>
@@ -105,12 +105,15 @@ export default function Register() {
               <input
                 id="name"
                 type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
+                {...register('name')}
                 placeholder="Your full name"
-                required
               />
             </div>
+            {errors.name && (
+              <span className="auth-field-error" style={{ color: '#c0392b', fontSize: '12px', marginTop: '4px' }}>
+                {errors.name.message}
+              </span>
+            )}
           </div>
 
           {/* Email */}
@@ -123,12 +126,15 @@ export default function Register() {
               <input
                 id="email"
                 type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                {...register('email')}
                 placeholder="you@example.com"
-                required
               />
             </div>
+            {errors.email && (
+              <span className="auth-field-error" style={{ color: '#c0392b', fontSize: '12px', marginTop: '4px' }}>
+                {errors.email.message}
+              </span>
+            )}
           </div>
 
           {/* Password */}
@@ -141,15 +147,18 @@ export default function Register() {
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
+                {...register('password')}
                 placeholder="Minimum 6 characters"
-                required
               />
-              <button type="button" className="auth-eye" onClick={() => setShowPassword(p => !p)} aria-label="Toggle password">
+              <button type="button" className="auth-eye" onClick={() => setShowPassword((p) => !p)} aria-label="Toggle password">
                 <EyeIcon visible={showPassword} />
               </button>
             </div>
+            {errors.password && (
+              <span className="auth-field-error" style={{ color: '#c0392b', fontSize: '12px', marginTop: '4px' }}>
+                {errors.password.message}
+              </span>
+            )}
           </div>
 
           {/* Confirm Password */}
@@ -162,15 +171,18 @@ export default function Register() {
               <input
                 id="confirm"
                 type={showConfirm ? 'text' : 'password'}
-                value={confirm}
-                onChange={e => setConfirm(e.target.value)}
+                {...register('confirm')}
                 placeholder="Repeat your password"
-                required
               />
-              <button type="button" className="auth-eye" onClick={() => setShowConfirm(p => !p)} aria-label="Toggle confirm password">
+              <button type="button" className="auth-eye" onClick={() => setShowConfirm((p) => !p)} aria-label="Toggle confirm password">
                 <EyeIcon visible={showConfirm} />
               </button>
             </div>
+            {errors.confirm && (
+              <span className="auth-field-error" style={{ color: '#c0392b', fontSize: '12px', marginTop: '4px' }}>
+                {errors.confirm.message}
+              </span>
+            )}
           </div>
 
           <button type="submit" className="auth-btn" disabled={loading}>
