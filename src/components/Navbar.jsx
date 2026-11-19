@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { getUser, logout } from '../features/auth/auth'
+import { useSelector, useDispatch } from 'react-redux'
+import { logout } from '../features/auth/auth'
+import { logoutSuccess } from '../features/auth/authSlice'
 import { getTheme, applyTheme } from '../theme.js'
 import Icon from './Icons.jsx'
 import './Navbar.css'
@@ -9,12 +11,14 @@ function Navbar() {
   const [open, setOpen] = useState(false)
   const [theme, setTheme] = useState(getTheme())
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   useLocation()
-  const user = getUser()
+  const user = useSelector((s) => s.auth.user)
   const firstName = user ? (user.name || 'there').split(' ')[0] : ''
 
   function handleLogout() {
     logout()
+    dispatch(logoutSuccess())
     navigate('/login')
   }
 
@@ -54,7 +58,6 @@ function Navbar() {
             <NavLink to="/events">Events</NavLink>
             <NavLink to="/guests">Guests</NavLink>
             <NavLink to="/tasks">Tasks</NavLink>
-
           </nav>
 
           <div className="navbar-actions">
