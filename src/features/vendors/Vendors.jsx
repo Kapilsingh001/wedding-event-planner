@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../../services/api';
 import { getShortlist, toggleShortlist } from './shortlist';
+import { matchesPriceRange, getTotalPages, paginate } from './vendorUtils';
 
-const API_BASE_URL = 'http://localhost:3001';
+const VENDORS_PER_PAGE = 8;
 
 // Loads the display fonts once. Safe even if this component mounts more
 // than once — it just skips re-adding the link.
@@ -26,23 +28,6 @@ const CATEGORY_STYLES = {
   Music: { color: '#C2447A', background: '#FBE4EF' },
 };
 const DEFAULT_CATEGORY_STYLE = { color: '#8B7A82', background: '#F3EBEE' };
-
-// Returns true if the price falls inside the selected budget range
-function matchesPriceRange(range, price) {
-  const p = Number(price);
-  switch (range) {
-    case 'under50':
-      return p < 50000;
-    case '50to100':
-      return p >= 50000 && p <= 100000;
-    case '100to200':
-      return p > 100000 && p <= 200000;
-    case 'above200':
-      return p > 200000;
-    default:
-      return true;
-  }
-}
 
 const PinIcon = () => (
   <svg viewBox="0 0 24 24" width="12" height="12" style={{ fill: '#F43F65', flexShrink: 0 }}>
@@ -75,6 +60,7 @@ export default function Vendors() {
   useThemeFonts();
 
   const [vendors, setVendors] = useState([]);
+  const [allVendors, setAllVendors] = useState([]); // every vendor, used by the My Shortlist bar
   const [cities, setCities] = useState([]);
   const [categories, setCategories] = useState([]);
 
@@ -83,24 +69,28 @@ export default function Vendors() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('default');
 
-  // New in phase 2
   const [priceRange, setPriceRange] = useState('any');
   const [minRating, setMinRating] = useState('any');
   const [shortlist, setShortlist] = useState(() => getShortlist());
   const [showShortlisted, setShowShortlisted] = useState(false);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const gridTopRef = useRef(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
 
+  // Dropdown options (loaded once)
   useEffect(() => {
     const fetchFilterOptions = async () => {
       try {
-        const citiesRes = await fetch(`${API_BASE_URL}/cities`);
-        if (citiesRes.ok) setCities(await citiesRes.json());
+        const { data: citiesData } = await api.get('/cities');
+        setCities(citiesData);
 
-        const categoriesRes = await fetch(`${API_BASE_URL}/categories`);
-        if (categoriesRes.ok) setCategories(await categoriesRes.json());
+        const { data: categoriesData } = await api.get('/categories');
+        setCategories(categoriesData);
       } catch (err) {
         console.warn('Filter endpoints unavailable');
       }
@@ -109,25 +99,34 @@ export default function Vendors() {
     fetchFilterOptions();
   }, []);
 
+  // All vendors (loaded once) so the My Shortlist bar always shows every saved vendor,
+  // even when a city or category filter is active
+  useEffect(() => {
+    const fetchAllVendors = async () => {
+      try {
+        const { data } = await api.get('/vendors');
+        setAllVendors(data);
+      } catch (err) {
+        console.warn('Could not load vendors for the shortlist bar');
+      }
+    };
+
+    fetchAllVendors();
+  }, []);
+
+  // Vendor list (reloads when city or category changes)
   useEffect(() => {
     const fetchVendors = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const params = new URLSearchParams();
-        if (selectedCity) params.append('city', selectedCity);
-        if (selectedCategory) params.append('category', selectedCategory);
-
-        const queryString = params.toString();
-        const url = `${API_BASE_URL}/vendors${queryString ? `?${queryString}` : ''}`;
-
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Server status error: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const { data } = await api.get('/vendors', {
+          params: {
+            city: selectedCity || undefined,
+            category: selectedCategory || undefined,
+          },
+        });
         setVendors(data);
       } catch (err) {
         setError(err.message || 'Failed to fetch vendor data.');
@@ -138,6 +137,11 @@ export default function Vendors() {
 
     fetchVendors();
   }, [selectedCity, selectedCategory]);
+
+  // Go back to page 1 whenever any filter, sort or the shortlist toggle changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCity, selectedCategory, priceRange, minRating, sortBy, showShortlisted]);
 
   // Name search + price range + minimum rating (+ shortlist toggle), all in JavaScript
   let filteredVendors = vendors.filter(
@@ -156,6 +160,27 @@ export default function Vendors() {
     filteredVendors = [...filteredVendors].sort((a, b) => b.price - a.price);
   }
 
+  // Pagination maths
+  const totalItems = filteredVendors.length;
+  const totalPages = getTotalPages(totalItems, VENDORS_PER_PAGE);
+  const safePage = Math.min(currentPage, totalPages); // in case the list got shorter
+  const pageVendors = paginate(filteredVendors, safePage, VENDORS_PER_PAGE);
+  const showingFrom = totalItems === 0 ? 0 : (safePage - 1) * VENDORS_PER_PAGE + 1;
+  const showingTo = Math.min(safePage * VENDORS_PER_PAGE, totalItems);
+  const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
+
+  // My Shortlist bar data
+  const shortlistedVendors = allVendors.filter((vendor) => shortlist.includes(String(vendor.id)));
+  const shortlistTotal = shortlistedVendors.reduce((sum, vendor) => sum + Number(vendor.price), 0);
+
+  const goToPage = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    if (gridTopRef.current) {
+      gridTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const resetFilters = () => {
     setSearchTerm('');
     setSelectedCity('');
@@ -164,12 +189,18 @@ export default function Vendors() {
     setPriceRange('any');
     setMinRating('any');
     setShowShortlisted(false);
+    setCurrentPage(1);
   };
 
   // The card is a <Link>, so stop the click from opening the detail page
   const handleToggleShortlist = (e, vendorId) => {
     e.preventDefault();
     e.stopPropagation();
+    setShortlist(toggleShortlist(vendorId));
+  };
+
+  // Remove button on a My Shortlist chip
+  const handleRemoveFromShortlist = (vendorId) => {
     setShortlist(toggleShortlist(vendorId));
   };
 
@@ -289,6 +320,7 @@ export default function Vendors() {
     margin: '34px 4px 20px',
     flexWrap: 'wrap',
     gap: '10px',
+    scrollMarginTop: '90px',
   };
 
   const resultsHeadingStyle = {
@@ -326,6 +358,72 @@ export default function Vendors() {
     border: showShortlisted ? '1px solid transparent' : '1px solid #F43F65',
     background: showShortlisted ? 'linear-gradient(135deg, #FF8FA3, #F43F65)' : '#FFFFFF',
     color: showShortlisted ? '#FFFFFF' : '#F43F65',
+  };
+
+  // My Shortlist bar
+  const shortlistBarStyle = {
+    backgroundColor: '#FFFFFF',
+    border: '1px solid #FCE1E7',
+    borderRadius: '20px',
+    padding: '18px 20px',
+    margin: '0 0 22px',
+    boxShadow: '0 12px 28px -20px rgba(244,63,101,0.4)',
+  };
+
+  const shortlistBarHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    gap: '8px',
+    marginBottom: '12px',
+  };
+
+  const shortlistBarTitleStyle = {
+    fontFamily: "'Playfair Display', serif",
+    fontWeight: 700,
+    fontSize: '18px',
+    color: '#241B22',
+  };
+
+  const shortlistTotalStyle = { fontSize: '13.5px', color: '#8B7A82' };
+  const shortlistTotalAmountStyle = {
+    fontFamily: "'Playfair Display', serif",
+    fontWeight: 700,
+    fontSize: '17px',
+    color: '#F43F65',
+  };
+
+  const chipRowStyle = { display: 'flex', flexWrap: 'wrap', gap: '10px' };
+
+  const chipStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    backgroundColor: '#FFE3E9',
+    borderRadius: '20px',
+    padding: '6px 8px 6px 14px',
+  };
+
+  const chipLinkStyle = {
+    fontSize: '13px',
+    fontWeight: 600,
+    color: '#241B22',
+    textDecoration: 'none',
+  };
+
+  const chipRemoveStyle = {
+    width: '22px',
+    height: '22px',
+    borderRadius: '50%',
+    border: 'none',
+    backgroundColor: '#FFFFFF',
+    color: '#F43F65',
+    fontSize: '14px',
+    fontWeight: 700,
+    lineHeight: 1,
+    cursor: 'pointer',
+    padding: 0,
   };
 
   const gridStyle = {
@@ -404,6 +502,34 @@ export default function Vendors() {
   };
   const priceLabelStyle = { fontSize: '11px', letterSpacing: '0.06em', color: '#8B7A82' };
   const priceStyle = { fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: '19px', color: '#F43F65' };
+
+  // Pagination
+  const paginationWrapStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '14px',
+    marginTop: '34px',
+  };
+
+  const showingTextStyle = { fontSize: '13.5px', color: '#8B7A82' };
+
+  const paginationRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '8px' };
+
+  const pageButtonStyle = (active, disabled) => ({
+    minWidth: '38px',
+    height: '38px',
+    padding: '0 16px',
+    borderRadius: '20px',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '13.5px',
+    fontWeight: 600,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.45 : 1,
+    border: active ? '1px solid transparent' : '1px solid #FCE1E7',
+    background: active ? 'linear-gradient(135deg, #FF8FA3, #F43F65)' : '#FFFFFF',
+    color: active ? '#FFFFFF' : '#F43F65',
+  });
 
   const statusWrapStyle = { textAlign: 'center', padding: '70px 20px', color: '#8B7A82' };
   const statusHeadingStyle = { fontFamily: "'Playfair Display', serif", fontSize: '22px', color: '#241B22', fontWeight: 700, margin: '0 0 8px' };
@@ -489,12 +615,12 @@ export default function Vendors() {
           </div>
         </div>
 
-        <div style={resultsRowStyle}>
+        <div style={resultsRowStyle} ref={gridTopRef}>
           <div>
             <h2 style={resultsHeadingStyle}>Our Vendors</h2>
             <div style={resultsCountStyle}>
               {!loading && !error &&
-                `${filteredVendors.length} ${filteredVendors.length === 1 ? 'vendor' : 'vendors'} found`}
+                `${totalItems} ${totalItems === 1 ? 'vendor' : 'vendors'} found`}
             </div>
           </div>
 
@@ -517,6 +643,36 @@ export default function Vendors() {
           </div>
         </div>
 
+        {shortlistedVendors.length > 0 && (
+          <div style={shortlistBarStyle}>
+            <div style={shortlistBarHeaderStyle}>
+              <span style={shortlistBarTitleStyle}>My Shortlist ({shortlistedVendors.length})</span>
+              <span style={shortlistTotalStyle}>
+                Total starting price:{' '}
+                <span style={shortlistTotalAmountStyle}>₹{shortlistTotal.toLocaleString('en-IN')}</span>
+              </span>
+            </div>
+            <div style={chipRowStyle}>
+              {shortlistedVendors.map((vendor) => (
+                <span key={vendor.id} style={chipStyle}>
+                  <Link to={`/vendors/${vendor.id}`} style={chipLinkStyle}>
+                    {vendor.name}
+                  </Link>
+                  <button
+                    type="button"
+                    style={chipRemoveStyle}
+                    onClick={() => handleRemoveFromShortlist(vendor.id)}
+                    aria-label={`Remove ${vendor.name} from shortlist`}
+                    title="Remove from shortlist"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {loading && (
           <div style={statusWrapStyle}>
             <p style={statusHeadingStyle}>Loading vendors…</p>
@@ -530,7 +686,7 @@ export default function Vendors() {
           </div>
         )}
 
-        {!loading && !error && filteredVendors.length === 0 && (
+        {!loading && !error && totalItems === 0 && (
           <div style={statusWrapStyle}>
             <h3 style={statusHeadingStyle}>No vendors match your search</h3>
             <p>Try a different city, category, budget or rating, or clear your filters.</p>
@@ -538,50 +694,92 @@ export default function Vendors() {
           </div>
         )}
 
-        {!loading && !error && filteredVendors.length > 0 && (
-          <div style={gridStyle}>
-            {filteredVendors.map((vendor) => {
-              const saved = shortlist.includes(String(vendor.id));
-              return (
-                <Link
-                  key={vendor.id}
-                  to={`/vendors/${vendor.id}`}
-                  style={getCardStyle(vendor.id)}
-                  onMouseEnter={() => setHoveredCardId(vendor.id)}
-                  onMouseLeave={() => setHoveredCardId(null)}
-                >
-                  <div>
-                    <div style={cardHeaderStyle}>
-                      <span style={categoryPillStyle(vendor.category)}>{vendor.category}</span>
-                      <div style={cardHeaderRightStyle}>
-                        <span style={ratingBadgeStyle}>
-                          <HeartIcon /> {Number(vendor.rating).toFixed(1)}
-                        </span>
-                        <button
-                          type="button"
-                          style={heartButtonStyle(saved)}
-                          onClick={(e) => handleToggleShortlist(e, vendor.id)}
-                          aria-label={saved ? 'Remove from shortlist' : 'Add to shortlist'}
-                          title={saved ? 'Remove from shortlist' : 'Add to shortlist'}
-                        >
-                          <ShortlistHeart filled={saved} />
-                        </button>
+        {!loading && !error && totalItems > 0 && (
+          <>
+            <div style={gridStyle}>
+              {pageVendors.map((vendor) => {
+                const saved = shortlist.includes(String(vendor.id));
+                return (
+                  <Link
+                    key={vendor.id}
+                    to={`/vendors/${vendor.id}`}
+                    style={getCardStyle(vendor.id)}
+                    onMouseEnter={() => setHoveredCardId(vendor.id)}
+                    onMouseLeave={() => setHoveredCardId(null)}
+                  >
+                    <div>
+                      <div style={cardHeaderStyle}>
+                        <span style={categoryPillStyle(vendor.category)}>{vendor.category}</span>
+                        <div style={cardHeaderRightStyle}>
+                          <span style={ratingBadgeStyle}>
+                            <HeartIcon /> {Number(vendor.rating).toFixed(1)}
+                          </span>
+                          <button
+                            type="button"
+                            style={heartButtonStyle(saved)}
+                            onClick={(e) => handleToggleShortlist(e, vendor.id)}
+                            aria-label={saved ? 'Remove from shortlist' : 'Add to shortlist'}
+                            title={saved ? 'Remove from shortlist' : 'Add to shortlist'}
+                          >
+                            <ShortlistHeart filled={saved} />
+                          </button>
+                        </div>
+                      </div>
+                      <h3 style={cardTitleStyle}>{vendor.name}</h3>
+                      <div style={cityRowStyle}>
+                        <PinIcon /> {vendor.city}
                       </div>
                     </div>
-                    <h3 style={cardTitleStyle}>{vendor.name}</h3>
-                    <div style={cityRowStyle}>
-                      <PinIcon /> {vendor.city}
-                    </div>
-                  </div>
 
-                  <div style={cardFooterStyle}>
-                    <span style={priceLabelStyle}>STARTING PRICE</span>
-                    <span style={priceStyle}>₹{Number(vendor.price).toLocaleString('en-IN')}</span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                    <div style={cardFooterStyle}>
+                      <span style={priceLabelStyle}>STARTING PRICE</span>
+                      <span style={priceStyle}>₹{Number(vendor.price).toLocaleString('en-IN')}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div style={paginationWrapStyle}>
+              <div style={showingTextStyle}>
+                Showing {showingFrom}-{showingTo} of {totalItems} {totalItems === 1 ? 'vendor' : 'vendors'}
+              </div>
+
+              {totalPages > 1 && (
+                <div style={paginationRowStyle}>
+                  <button
+                    type="button"
+                    style={pageButtonStyle(false, safePage === 1)}
+                    onClick={() => goToPage(safePage - 1)}
+                    disabled={safePage === 1}
+                  >
+                    Previous
+                  </button>
+
+                  {pageNumbers.map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      style={pageButtonStyle(pageNumber === safePage, false)}
+                      onClick={() => goToPage(pageNumber)}
+                      aria-current={pageNumber === safePage ? 'page' : undefined}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    style={pageButtonStyle(false, safePage === totalPages)}
+                    onClick={() => goToPage(safePage + 1)}
+                    disabled={safePage === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
