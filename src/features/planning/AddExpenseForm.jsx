@@ -1,66 +1,46 @@
 import { useState } from "react";
-
-const API_URL = "http://localhost:3001";
-const EXPENSE_CATEGORIES = ["Catering", "Decoration", "Photography", "Music", "Venue", "Gifts", "Transport", "Others"];
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import api from "../../services/api";
+import { EXPENSE_CATEGORIES } from "./budgetUtils";
+import { expenseSchema } from "./schemas";
 
 export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
   const isEdit = Boolean(expense);
-
-  const [formData, setFormData] = useState({
-    category: expense ? expense.category : "Catering",
-    amount: expense ? expense.amount : "",
-    date: expense ? expense.date : "",
-  });
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(expenseSchema),
+    defaultValues: {
+      category: expense ? expense.category : "Catering",
+      amount: expense ? expense.amount : "",
+      date: expense ? expense.date : "",
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (values) => {
     setError("");
-
-    if (!formData.amount || !formData.date) {
-      setError("Please fill in all fields.");
-      return;
-    }
-    if (Number(formData.amount) <= 0) {
-      setError("Amount must be a positive number.");
-      return;
-    }
-
     const body = {
-      category: formData.category,
-      amount: Number(formData.amount),
-      date: formData.date,
+      category: values.category,
+      amount: values.amount,
+      date: values.date,
     };
 
-    setSubmitting(true);
     try {
-      let response;
+      let res;
       if (isEdit) {
         // PATCH: update only these fields (eventId is not sent, so it stays unchanged)
-        response = await fetch(`${API_URL}/expenses/${expense.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
+        res = await api.patch(`/expenses/${expense.id}`, body);
       } else {
-        response = await fetch(`${API_URL}/expenses`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ eventId, ...body }),
-        });
+        res = await api.post("/expenses", { eventId, ...body });
       }
-      if (!response.ok) throw new Error("Failed to save expense");
-      onSaved(await response.json());
+      onSaved(res.data);
     } catch (err) {
       setError(isEdit ? "Could not update expense. Please try again." : "Could not add expense. Please try again.");
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -71,35 +51,38 @@ export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
           <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "21px", fontWeight: "700", color: "#1f1015" }}>
             {isEdit ? "Edit Expense" : "Add Expense"}
           </h2>
-          <button onClick={onClose} style={styles.closeBtn}>✕</button>
+          <button type="button" onClick={onClose} style={styles.closeBtn}>✕</button>
         </div>
 
         {error && <div style={styles.alertError}>{error}</div>}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div style={{ marginBottom: "15px" }}>
             <label style={styles.label}>Category</label>
-            <select name="category" value={formData.category} onChange={handleChange} style={styles.input}>
+            <select style={styles.input} {...register("category")}>
               {EXPENSE_CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
+            {errors.category && <p style={styles.fieldError}>{errors.category.message}</p>}
           </div>
 
           <div style={{ marginBottom: "15px" }}>
             <label style={styles.label}>Amount (₹)</label>
-            <input type="number" name="amount" value={formData.amount} onChange={handleChange} placeholder="e.g. 25000" min="0" style={styles.input} />
+            <input type="number" placeholder="e.g. 25000" min="0" style={styles.input} {...register("amount")} />
+            {errors.amount && <p style={styles.fieldError}>{errors.amount.message}</p>}
           </div>
 
           <div style={{ marginBottom: "15px" }}>
             <label style={styles.label}>Date</label>
-            <input type="date" name="date" value={formData.date} onChange={handleChange} style={styles.input} />
+            <input type="date" style={styles.input} {...register("date")} />
+            {errors.date && <p style={styles.fieldError}>{errors.date.message}</p>}
           </div>
 
           <div style={{ display: "flex", gap: "10px", marginTop: "22px" }}>
             <button type="button" onClick={onClose} style={styles.btnSecondary}>Cancel</button>
-            <button type="submit" disabled={submitting} style={{ ...styles.btnPrimary, opacity: submitting ? 0.7 : 1 }}>
-              {submitting ? (isEdit ? "Saving..." : "Adding...") : (isEdit ? "Save" : "Add Expense")}
+            <button type="submit" disabled={isSubmitting} style={{ ...styles.btnPrimary, opacity: isSubmitting ? 0.7 : 1 }}>
+              {isSubmitting ? (isEdit ? "Saving..." : "Adding...") : (isEdit ? "Save" : "Add Expense")}
             </button>
           </div>
         </form>
@@ -141,6 +124,11 @@ const styles = {
     borderRadius: "10px",
     marginBottom: "14px",
     fontSize: "14px",
+  },
+  fieldError: {
+    color: "#b91c1c",
+    fontSize: "12px",
+    margin: "5px 0 0",
   },
   label: {
     display: "block",
