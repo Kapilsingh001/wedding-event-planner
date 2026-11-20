@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import api from "../../services/api";
@@ -10,6 +10,7 @@ const EVENT_TYPES = ["Wedding", "Engagement", "Reception", "Birthday", "Annivers
 export default function CreateEventForm({ onClose, onSaved, event }) {
   const isEdit = Boolean(event);
   const [error, setError] = useState("");
+  const [venues, setVenues] = useState([]);
 
   const {
     register,
@@ -25,6 +26,24 @@ export default function CreateEventForm({ onClose, onSaved, event }) {
       budget: event ? event.budget : "",
     },
   });
+
+  // Load vendors in the "Venue" category for the dropdown
+  useEffect(() => {
+    const loadVenues = async () => {
+      try {
+        const res = await api.get("/vendors", { params: { category: "Venue" } });
+        setVenues(res.data);
+      } catch (err) {
+        setVenues([]); // form still works, the dropdown is just short
+      }
+    };
+    loadVenues();
+  }, []);
+
+  // Dropdown names. In edit mode, keep the saved venue even if it is not a vendor.
+  const venueNames = [
+    ...new Set([...(event?.venue ? [event.venue] : []), ...venues.map((v) => v.name)]),
+  ];
 
   // Runs only when Zod says the data is valid
   const onSubmit = async (values) => {
@@ -84,7 +103,12 @@ export default function CreateEventForm({ onClose, onSaved, event }) {
           </Field>
 
           <Field label="Venue" error={errors.venue?.message}>
-            <input type="text" placeholder="e.g. Grand Palace" style={styles.input} {...register("venue")} />
+            <select style={styles.input} {...register("venue")}>
+              <option value="">Select a venue</option>
+              {venueNames.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
           </Field>
 
           <Field label="Budget (₹)" error={errors.budget?.message}>
