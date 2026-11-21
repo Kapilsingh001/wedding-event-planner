@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react'
 import api from '../services/api'
 import { getUser } from '../features/auth/auth'
 import Icon from '../components/Icons.jsx'
+import Dropdown from '../components/Dropdown.jsx'
+import DatePicker from '../components/DatePicker.jsx'
 import { isPastDate, addDays, getDueInfo, countTasks } from './tasksUtils'
 import './Tasks.css'
 
 const CATEGORIES = ['Venue', 'Catering', 'Decor', 'Attire', 'Guests', 'Other']
+const CATEGORY_OPTIONS = CATEGORIES.map((cat) => ({ value: cat, label: cat }))
+const FILTER_OPTIONS = [{ value: 'All', label: 'All categories' }, ...CATEGORY_OPTIONS]
 
 // A ready-made starter list, added with one click when the checklist is empty.
 // inDays is turned into a real due date counted from today.
@@ -165,15 +169,12 @@ function Tasks() {
         </div>
         <div className="tasks-field">
           <label htmlFor="task-category">Category</label>
-          <select id="task-category" value={category} onChange={(e) => setCategory(e.target.value)}>
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+          <Dropdown id="task-category" value={category} options={CATEGORY_OPTIONS} onChange={setCategory} />
         </div>
         <div className="tasks-field">
           <label htmlFor="task-date">Due date</label>
-          <input id="task-date" type="date" min={today} value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          {/* min={today}: days before today are greyed out and cannot be picked */}
+          <DatePicker id="task-date" value={dueDate} min={today} onChange={setDueDate} />
         </div>
         <button type="submit" className="btn tasks-add">
           <Icon name="plus" size={18} /> Add Task
@@ -198,17 +199,13 @@ function Tasks() {
               </button>
             ))}
           </div>
-          <select
+          <Dropdown
             className="tasks-category-filter"
-            aria-label="Filter by category"
+            label="Filter by category"
             value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
-            <option value="All">All categories</option>
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+            options={FILTER_OPTIONS}
+            onChange={setCategoryFilter}
+          />
         </div>
       )}
 
