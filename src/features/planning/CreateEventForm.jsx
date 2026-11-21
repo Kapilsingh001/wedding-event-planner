@@ -1,74 +1,75 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import api from "../../services/api";
 import { getUser } from "../auth/auth";
+import { eventSchema } from "./schemas";
 
-const API_URL = "http://localhost:3001";
 const EVENT_TYPES = ["Wedding", "Engagement", "Reception", "Birthday", "Anniversary"];
 
 export default function CreateEventForm({ onClose, onSaved, event }) {
   const isEdit = Boolean(event);
-
-  const [formData, setFormData] = useState({
-    title: event ? event.title : "",
-    type: event ? event.type : "Wedding",
-    date: event ? event.date : "",
-    venue: event ? event.venue : "",
-    budget: event ? event.budget : "",
-  });
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [venues, setVenues] = useState([]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(eventSchema),
+    defaultValues: {
+      title: event ? event.title : "",
+      type: event ? event.type : "Wedding",
+      date: event ? event.date : "",
+      venue: event ? event.venue : "",
+      budget: event ? event.budget : "",
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Load vendors in the "Venue" category for the dropdown
+  useEffect(() => {
+    const loadVenues = async () => {
+      try {
+        const res = await api.get("/vendors", { params: { category: "Venue" } });
+        setVenues(res.data);
+      } catch (err) {
+        setVenues([]); // form still works, the dropdown is just short
+      }
+    };
+    loadVenues();
+  }, []);
+
+  // Dropdown names. In edit mode, keep the saved venue even if it is not a vendor.
+  const venueNames = [
+    ...new Set([...(event?.venue ? [event.venue] : []), ...venues.map((v) => v.name)]),
+  ];
+
+  // Runs only when Zod says the data is valid
+  const onSubmit = async (values) => {
     setError("");
-
-    if (!formData.title.trim() || !formData.date || !formData.venue.trim() || !formData.budget) {
-      setError("Please fill in all fields.");
-      return;
-    }
-    if (Number(formData.budget) <= 0) {
-      setError("Budget must be a positive number.");
-      return;
-    }
-
     const body = {
-      title: formData.title.trim(),
-      type: formData.type,
-      date: formData.date,
-      venue: formData.venue.trim(),
-      budget: Number(formData.budget),
+      title: values.title,
+      type: values.type,
+      date: values.date,
+      venue: values.venue,
+      budget: values.budget,
     };
 
-    setSubmitting(true);
     try {
-      let response;
+      let res;
       if (isEdit) {
         // PATCH: update only these fields (userId is not sent, so it stays unchanged)
-        response = await fetch(`${API_URL}/events/${event.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
+        res = await api.patch(`/events/${event.id}`, body);
       } else {
         const user = getUser();
         if (!user) throw new Error("Not logged in");
         // POST: create a new event owned by the logged-in user
-        response = await fetch(`${API_URL}/events`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...body, userId: user.id }),
-        });
+        res = await api.post("/events", { ...body, userId: user.id });
       }
-      if (!response.ok) throw new Error("Failed to save event");
-      onSaved(await response.json());
+      onSaved(res.data);
     } catch (err) {
       setError(isEdit ? "Could not update event. Please try again." : "Could not create event. Please try again.");
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -79,40 +80,45 @@ export default function CreateEventForm({ onClose, onSaved, event }) {
           <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "21px", fontWeight: "700", color: "#1f1015" }}>
             {isEdit ? "Edit Event" : "Create Event"}
           </h2>
-          <button onClick={onClose} style={styles.closeBtn}>✕</button>
+          <button type="button" onClick={onClose} style={styles.closeBtn}>✕</button>
         </div>
 
         {error && <div style={styles.alertError}>{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <Field label="Event Title">
-            <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="e.g. My Wedding" style={styles.input} />
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <Field label="Event Title" error={errors.title?.message}>
+            <input type="text" placeholder="e.g. My Wedding" style={styles.input} {...register("title")} />
           </Field>
 
-          <Field label="Event Type">
-            <select name="type" value={formData.type} onChange={handleChange} style={styles.input}>
+          <Field label="Event Type" error={errors.type?.message}>
+            <select style={styles.input} {...register("type")}>
               {EVENT_TYPES.map((type) => (
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
           </Field>
 
-          <Field label="Date">
-            <input type="date" name="date" value={formData.date} onChange={handleChange} style={styles.input} />
+          <Field label="Date" error={errors.date?.message}>
+            <input type="date" style={styles.input} {...register("date")} />
           </Field>
 
-          <Field label="Venue">
-            <input type="text" name="venue" value={formData.venue} onChange={handleChange} placeholder="e.g. Grand Palace" style={styles.input} />
+          <Field label="Venue" error={errors.venue?.message}>
+            <select style={styles.input} {...register("venue")}>
+              <option value="">Select a venue</option>
+              {venueNames.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
           </Field>
 
-          <Field label="Budget (₹)">
-            <input type="number" name="budget" value={formData.budget} onChange={handleChange} placeholder="e.g. 500000" min="0" style={styles.input} />
+          <Field label="Budget (₹)" error={errors.budget?.message}>
+            <input type="number" placeholder="e.g. 500000" min="0" style={styles.input} {...register("budget")} />
           </Field>
 
           <div style={{ display: "flex", gap: "10px", marginTop: "22px" }}>
             <button type="button" onClick={onClose} style={styles.btnSecondary}>Cancel</button>
-            <button type="submit" disabled={submitting} style={{ ...styles.btnPrimary, opacity: submitting ? 0.7 : 1 }}>
-              {submitting ? (isEdit ? "Saving..." : "Creating...") : (isEdit ? "Save" : "Create")}
+            <button type="submit" disabled={isSubmitting} style={{ ...styles.btnPrimary, opacity: isSubmitting ? 0.7 : 1 }}>
+              {isSubmitting ? (isEdit ? "Saving..." : "Creating...") : (isEdit ? "Save" : "Create")}
             </button>
           </div>
         </form>
@@ -121,11 +127,12 @@ export default function CreateEventForm({ onClose, onSaved, event }) {
   );
 }
 
-function Field({ label, children }) {
+function Field({ label, error, children }) {
   return (
     <div style={{ marginBottom: "15px" }}>
       <label style={styles.label}>{label}</label>
       {children}
+      {error && <p style={styles.fieldError}>{error}</p>}
     </div>
   );
 }
@@ -162,6 +169,11 @@ const styles = {
     borderRadius: "10px",
     marginBottom: "14px",
     fontSize: "14px",
+  },
+  fieldError: {
+    color: "#b91c1c",
+    fontSize: "12px",
+    margin: "5px 0 0",
   },
   label: {
     display: "block",

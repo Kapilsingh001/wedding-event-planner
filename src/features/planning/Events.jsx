@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
+import api from "../../services/api";
 import CreateEventForm from "./CreateEventForm";
 import EventDetail from "./EventDetail";
 import { getUser } from "../auth/auth";
-
-const API_URL = "http://localhost:3001";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
@@ -18,17 +17,13 @@ export default function Events() {
     setError("");
     try {
       const [eventsRes, expensesRes] = await Promise.all([
-        fetch(`${API_URL}/events`),
-        fetch(`${API_URL}/expenses`),
+        api.get("/events"),
+        api.get("/expenses"),
       ]);
-      if (!eventsRes.ok || !expensesRes.ok) {
-        throw new Error("Failed to fetch data from server");
-      }
-      const allEvents = await eventsRes.json();
       const user = getUser();
       // Filter in JavaScript: keep only the logged-in user's events
-      setEvents(allEvents.filter((event) => user && event.userId === user.id));
-      setExpenses(await expensesRes.json());
+      setEvents(eventsRes.data.filter((event) => user && event.userId === user.id));
+      setExpenses(expensesRes.data);
     } catch (err) {
       setError("Could not load events. Make sure JSON Server is running on port 3001.");
     } finally {
