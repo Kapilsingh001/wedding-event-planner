@@ -84,10 +84,12 @@ function Tasks() {
   async function addSuggested() {
     setError('')
     try {
-      // one POST per task; Promise.all waits until all of them are saved
-      const saved = await Promise.all(
-        SUGGESTED_TASKS.map(({ inDays, ...task }) => createTask({ ...task, dueDate: addDays(today, inDays) }))
-      )
+      // one POST at a time: JSON Server rewrites db.json on every save, and
+      // several saves at the same moment can overwrite each other
+      const saved = []
+      for (const { inDays, ...task } of SUGGESTED_TASKS) {
+        saved.push(await createTask({ ...task, dueDate: addDays(today, inDays) }))
+      }
       setTasks((prev) => [...prev, ...saved])
     } catch {
       setError('Could not add the suggested tasks.')
