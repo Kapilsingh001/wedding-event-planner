@@ -132,8 +132,7 @@
 }
 
 .tasks-form input,
-.tasks-form select,
-.tasks-category-filter {
+.tasks-form select {
   min-width: 0;
   height: 44px;
   padding: 0 12px;
@@ -146,8 +145,7 @@
 }
 
 .tasks-form input:focus,
-.tasks-form select:focus,
-.tasks-category-filter:focus {
+.tasks-form select:focus {
   outline: 2px solid var(--pink-dark);
   outline-offset: 1px;
 }
@@ -229,8 +227,19 @@
 }
 
 .tasks-category-filter {
+  min-width: 190px;
+}
+
+.tasks-category-filter .dropdown-button {
   height: 40px;
   border-radius: 999px;
+  background: var(--surface);
+}
+
+/* the filter sits on the right, so its list opens towards the left */
+.tasks-category-filter .dropdown-list {
+  left: auto;
+  right: 0;
 }
 
 .tasks-muted {
