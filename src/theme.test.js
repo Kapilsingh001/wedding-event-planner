@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { getTheme, applyTheme } from './theme.js'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { getTheme, applyTheme, THEME_FADE_MS } from './theme.js'
 
 describe('theme', () => {
   beforeEach(() => {
@@ -16,5 +16,28 @@ describe('theme', () => {
     applyTheme('dark')
     expect(document.documentElement.dataset.theme).toBe('dark')
     expect(getTheme()).toBe('dark')
+  })
+
+  it('fades the colours for a moment when the theme changes', () => {
+    vi.useFakeTimers()
+    const root = document.documentElement
+    applyTheme('light')
+    root.classList.remove('theme-switching')
+
+    applyTheme('dark')
+    expect(root.classList.contains('theme-switching')).toBe(true)
+
+    vi.advanceTimersByTime(THEME_FADE_MS)
+    expect(root.classList.contains('theme-switching')).toBe(false)
+    vi.useRealTimers()
+  })
+
+  it('does not fade when the same theme is applied again', () => {
+    const root = document.documentElement
+    applyTheme('dark')
+    root.classList.remove('theme-switching')
+
+    applyTheme('dark')
+    expect(root.classList.contains('theme-switching')).toBe(false)
   })
 })

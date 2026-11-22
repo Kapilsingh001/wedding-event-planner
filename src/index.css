@@ -18,21 +18,26 @@
   --shadow-hover: 0 14px 32px rgba(43, 37, 39, 0.10);
   --container: 1200px;
 }
+/* Dark colours. Three layers, each a step lighter: page, card, tinted box.
+   --pink-dark is a LIGHT pink here, because it is mostly used for text and thin
+   lines on dark boxes. Boxes with white text on them use --pink-deeper
+   (see src/dark.css). The shadows also draw a faint light line on the top
+   edge of a card, which makes cards look raised. */
 [data-theme='dark'] {
-  --bg: #181315;
-  --surface: #231C1F;
-  --pink: #F07C90;
-  --pink-dark: #E0566F;
+  --bg: #151113;
+  --surface: #211A1D;
+  --pink: #F58CA0;
+  --pink-dark: #EC6F86;
   --pink-deeper: #C93F59;
-  --pink-light: #3A252B;
+  --pink-light: #37232A;
   --rose: #D99AA4;
   --rose-dark: #E8B4BC;
-  --soft: #4A3439;
-  --text-dark: #F4EDEF;
-  --text-gray: #B9ADB0;
-  --border: #3A2F32;
-  --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
-  --shadow-hover: 0 14px 32px rgba(0, 0, 0, 0.45);
+  --soft: #4D353B;
+  --text-dark: #F6EFF1;
+  --text-gray: #C0B4B8;
+  --border: #3D3136;
+  --shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 28px rgba(0, 0, 0, 0.4);
+  --shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 16px 36px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
 }
 
@@ -41,7 +46,7 @@
 [data-theme='dark'] .hero-sample,
 [data-theme='dark'] .badge-demo,
 [data-theme='dark'] .skip-link {
-  background: #0F0B0D;
+  background: #0E0A0C;
 }
 
 
