@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import api from '../../services/api';
 import { getShortlist, toggleShortlist } from './shortlist';
+import { getUser } from '../auth/auth';
+import Icon from '../../components/Icons.jsx';
+import BookingForm from './BookingForm';
+import MyBookings from './MyBookings';
+import { hasActiveBooking } from './bookingUtils';
 
 function useThemeFonts() {
   useEffect(() => {
@@ -96,6 +101,14 @@ export default function VendorDetail() {
   const [shortlisted, setShortlisted] = useState(false);
   const [hoveredId, setHoveredId] = useState(null);
 
+  // Booking requests
+  const user = getUser();
+  const userId = user ? String(user.id) : null;
+  const [bookings, setBookings] = useState([]); // only this user's bookings
+  const [showForm, setShowForm] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [bookingError, setBookingError] = useState('');
+
   // Load the vendor (and similar vendors) every time the id in the URL changes
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -161,6 +174,63 @@ export default function VendorDetail() {
     const updated = toggleShortlist(id);
     setShortlisted(updated.includes(String(id)));
   };
+
+  // Load all bookings once, then keep only this user's bookings
+  useEffect(() => {
+    if (!userId) {
+      setBookings([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const loadBookings = async () => {
+      try {
+        const { data } = await api.get('/bookings');
+        if (!cancelled) {
+          setBookings(data.filter((booking) => String(booking.userId) === userId));
+        }
+      } catch (err) {
+        console.warn('Could not load bookings');
+      }
+    };
+
+    loadBookings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // Close the form and clear messages when the user opens another vendor
+  useEffect(() => {
+    setShowForm(false);
+    setSuccessMessage('');
+    setBookingError('');
+  }, [id]);
+
+  const handleBookingSaved = (booking) => {
+    setBookings((prev) => [...prev, booking]);
+    setShowForm(false);
+    setBookingError('');
+    setSuccessMessage('Booking request sent.');
+  };
+
+  const handleCancelBooking = async (booking) => {
+    if (!window.confirm('Cancel this booking request?')) return;
+
+    try {
+      await api.delete(`/bookings/${booking.id}`);
+      setBookings((prev) => prev.filter((item) => item.id !== booking.id));
+      setSuccessMessage('');
+      setBookingError('');
+    } catch (err) {
+      setBookingError(err.message || 'Could not cancel the request. Please try again.');
+    }
+  };
+
+  const vendorBookings = bookings.filter((booking) => String(booking.vendorId) === String(id));
+  const alreadyRequested = hasActiveBooking(bookings, id);
 
   // ---------- styles ----------
 
@@ -265,6 +335,8 @@ export default function VendorDetail() {
     color: shortlisted ? '#FFFFFF' : '#F43F65',
   };
 
+  const actionsRowStyle = { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' };
+
   const sectionHeadingStyle = {
     fontFamily: "'Playfair Display', serif",
     fontWeight: 700,
@@ -349,6 +421,17 @@ export default function VendorDetail() {
 
         {vendor && !loading && !error && !notFound && (
           <>
+            {successMessage && (
+              <div className="ui-alert ui-alert-success" role="status" style={{ margin: '0 0 18px' }}>
+                {successMessage}
+              </div>
+            )}
+            {bookingError && (
+              <div className="ui-alert ui-alert-error" role="alert" style={{ margin: '0 0 18px' }}>
+                {bookingError}
+              </div>
+            )}
+
             <div style={mainCardStyle}>
               <div style={topRowStyle}>
                 <span style={categoryPillStyle(vendor.category)}>{vendor.category}</span>
@@ -368,10 +451,26 @@ export default function VendorDetail() {
                   <div style={priceStyle}>₹{Number(vendor.price).toLocaleString('en-IN')}</div>
                 </div>
 
-                <button type="button" style={shortlistButtonStyle} onClick={handleToggleShortlist}>
-                  <ShortlistHeart filled={shortlisted} />
-                  {shortlisted ? 'Shortlisted' : 'Add to shortlist'}
-                </button>
+                <div style={actionsRowStyle}>
+                  {!user ? (
+                    <Link to="/login" className="btn btn-ghost">
+                      Log in to request a booking
+                    </Link>
+                  ) : alreadyRequested ? (
+                    <button type="button" className="btn" disabled>
+                      Booking requested
+                    </button>
+                  ) : (
+                    <button type="button" className="btn" onClick={() => setShowForm(true)}>
+                      <Icon name="calendar" size={16} /> Request booking
+                    </button>
+                  )}
+
+                  <button type="button" style={shortlistButtonStyle} onClick={handleToggleShortlist}>
+                    <ShortlistHeart filled={shortlisted} />
+                    {shortlisted ? 'Shortlisted' : 'Add to shortlist'}
+                  </button>
+                </div>
               </div>
 
               {services.length > 0 && (
@@ -388,6 +487,12 @@ export default function VendorDetail() {
                 </>
               )}
             </div>
+
+            {vendorBookings.length > 0 && (
+              <div style={{ margin: '22px 0 0' }}>
+                <MyBookings bookings={vendorBookings} onCancel={handleCancelBooking} />
+              </div>
+            )}
 
             {similar.length > 0 && (
               <>
@@ -418,6 +523,14 @@ export default function VendorDetail() {
                   ))}
                 </div>
               </>
+            )}
+
+            {showForm && (
+              <BookingForm
+                vendor={vendor}
+                onClose={() => setShowForm(false)}
+                onSaved={handleBookingSaved}
+              />
             )}
           </>
         )}
