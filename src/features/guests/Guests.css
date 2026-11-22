@@ -425,3 +425,66 @@
     padding: 10px 12px;
   }
 }
+
+/* ---------- shared themed Dropdown on this page ---------- */
+.guests-filter-select {
+  min-width: 170px;
+}
+
+.guests-rsvp-dd {
+  width: 150px;
+}
+
+.guests-rsvp-dd .dropdown-button {
+  height: 36px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.guests-rsvp-dd-pending .dropdown-button {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.guests-rsvp-dd-attending .dropdown-button {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.guests-rsvp-dd-declined .dropdown-button {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.guests-rsvp-dd .dropdown-button svg {
+  color: currentColor;
+}
+
+[data-theme='dark'] .guests-rsvp-dd-pending .dropdown-button {
+  background: #3A2E1A;
+  color: #F4C98A;
+  border-color: #5A4525;
+}
+
+[data-theme='dark'] .guests-rsvp-dd-attending .dropdown-button {
+  background: #1C3326;
+  color: #8EE0AE;
+  border-color: #2C5A40;
+}
+
+[data-theme='dark'] .guests-rsvp-dd-declined .dropdown-button {
+  background: #3D1F22;
+  color: #FF9B9B;
+  border-color: #5A2A2E;
+}
+
+/* let the open list hang outside the table on wide screens */
+@media (min-width: 701px) {
+  .guests-table-wrapper {
+    overflow: visible;
+  }
+}

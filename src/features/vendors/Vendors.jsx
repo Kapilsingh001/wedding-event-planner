@@ -3,6 +3,27 @@ import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { getShortlist, toggleShortlist } from './shortlist';
 import { matchesPriceRange, getTotalPages, paginate } from './vendorUtils';
+import Dropdown from '../../components/Dropdown.jsx';
+
+const PRICE_OPTIONS = [
+  { value: 'any', label: 'Any budget' },
+  { value: 'under50', label: 'Under ₹50,000' },
+  { value: '50to100', label: '₹50,000 - 1,00,000' },
+  { value: '100to200', label: '₹1,00,000 - 2,00,000' },
+  { value: 'above200', label: 'Above ₹2,00,000' },
+];
+const RATING_OPTIONS = [
+  { value: 'any', label: 'Any rating' },
+  { value: '4.5', label: '4.5+' },
+  { value: '4.7', label: '4.7+' },
+  { value: '4.9', label: '4.9+' },
+];
+const SORT_OPTIONS = [
+  { value: 'default', label: 'Sort: Featured' },
+  { value: 'rating-desc', label: 'Rating: High to low' },
+  { value: 'price-asc', label: 'Price: Low to high' },
+  { value: 'price-desc', label: 'Price: High to low' },
+];
 
 const VENDORS_PER_PAGE = 8;
 
@@ -292,26 +313,14 @@ export default function Vendors() {
     color: '#241B22',
   };
 
-  const selectWrapStyle = {
-    flex: '1 1 170px',
-    padding: '0 18px',
-    borderRadius: '30px',
-    border: '1px solid #FCE1E7',
-    backgroundColor: '#FFF7F8',
-  };
+  const filterWrapStyle = { flex: '1 1 170px', minWidth: 0 };
 
-  const selectStyle = {
-    width: '100%',
-    padding: '14px 0',
-    fontSize: '14px',
-    fontWeight: 500,
-    border: 'none',
-    outline: 'none',
-    backgroundColor: 'transparent',
-    color: '#5C4650',
-    cursor: 'pointer',
-    fontFamily: "'Poppins', sans-serif",
-  };
+  // options for the shared Dropdown component: { value, label }
+  const cityOptions = [{ value: '', label: 'All cities' }, ...cities.map((city) => ({ value: city.name, label: city.name }))];
+  const categoryOptions = [
+    { value: '', label: 'All categories' },
+    ...categories.map((cat) => ({ value: cat.name, label: cat.name })),
+  ];
 
   const resultsRowStyle = {
     display: 'flex',
@@ -333,17 +342,6 @@ export default function Vendors() {
   const resultsCountStyle = { fontSize: '13.5px', color: '#8B7A82' };
 
   const rightControlsStyle = { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' };
-
-  const sortSelectStyle = {
-    fontFamily: "'Poppins', sans-serif",
-    fontSize: '13.5px',
-    color: '#8B7A82',
-    background: '#FFFFFF',
-    border: '1px solid #FCE1E7',
-    borderRadius: '20px',
-    padding: '8px 16px',
-    cursor: 'pointer',
-  };
 
   const shortlistToggleStyle = {
     display: 'inline-flex',
@@ -577,41 +575,20 @@ export default function Vendors() {
             />
           </div>
 
-          <div style={selectWrapStyle}>
-            <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} style={selectStyle}>
-              <option value="">All cities</option>
-              {cities.map((city) => (
-                <option key={city.id} value={city.name}>{city.name}</option>
-              ))}
-            </select>
+          <div style={filterWrapStyle}>
+            <Dropdown className="dropdown-pill" label="Filter by city" value={selectedCity} onChange={setSelectedCity} options={cityOptions} />
           </div>
 
-          <div style={selectWrapStyle}>
-            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} style={selectStyle}>
-              <option value="">All categories</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
-              ))}
-            </select>
+          <div style={filterWrapStyle}>
+            <Dropdown className="dropdown-pill" label="Filter by category" value={selectedCategory} onChange={setSelectedCategory} options={categoryOptions} />
           </div>
 
-          <div style={selectWrapStyle}>
-            <select value={priceRange} onChange={(e) => setPriceRange(e.target.value)} style={selectStyle}>
-              <option value="any">Any budget</option>
-              <option value="under50">Under ₹50,000</option>
-              <option value="50to100">₹50,000 - 1,00,000</option>
-              <option value="100to200">₹1,00,000 - 2,00,000</option>
-              <option value="above200">Above ₹2,00,000</option>
-            </select>
+          <div style={filterWrapStyle}>
+            <Dropdown className="dropdown-pill" label="Filter by budget" value={priceRange} onChange={setPriceRange} options={PRICE_OPTIONS} />
           </div>
 
-          <div style={selectWrapStyle}>
-            <select value={minRating} onChange={(e) => setMinRating(e.target.value)} style={selectStyle}>
-              <option value="any">Any rating</option>
-              <option value="4.5">4.5+</option>
-              <option value="4.7">4.7+</option>
-              <option value="4.9">4.9+</option>
-            </select>
+          <div style={filterWrapStyle}>
+            <Dropdown className="dropdown-pill" label="Filter by rating" value={minRating} onChange={setMinRating} options={RATING_OPTIONS} />
           </div>
         </div>
 
@@ -634,12 +611,9 @@ export default function Vendors() {
               {showShortlisted ? 'Showing shortlisted only' : 'Show shortlisted only'}
             </button>
 
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={sortSelectStyle}>
-              <option value="default">Sort: Featured</option>
-              <option value="rating-desc">Rating: High to low</option>
-              <option value="price-asc">Price: Low to high</option>
-              <option value="price-desc">Price: High to low</option>
-            </select>
+            <div style={{ minWidth: '210px' }}>
+              <Dropdown className="dropdown-pill vendors-sort" label="Sort vendors" value={sortBy} onChange={setSortBy} options={SORT_OPTIONS} />
+            </div>
           </div>
         </div>
 

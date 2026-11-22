@@ -1,9 +1,13 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import api from "../../services/api";
 import { EXPENSE_CATEGORIES } from "./budgetUtils";
 import { expenseSchema } from "./schemas";
+import Dropdown from "../../components/Dropdown.jsx";
+import DatePicker from "../../components/DatePicker.jsx";
+
+const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map((cat) => ({ value: cat, label: cat }));
 
 export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
   const isEdit = Boolean(expense);
@@ -11,6 +15,7 @@ export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -59,11 +64,14 @@ export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div style={{ marginBottom: "15px" }}>
             <label style={styles.label}>Category</label>
-            <select style={styles.input} {...register("category")}>
-              {EXPENSE_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+            {/* Controller connects the shared Dropdown / DatePicker to React Hook Form */}
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <Dropdown label="Category" value={field.value} onChange={field.onChange} options={CATEGORY_OPTIONS} />
+              )}
+            />
             {errors.category && <p style={styles.fieldError}>{errors.category.message}</p>}
           </div>
 
@@ -75,7 +83,14 @@ export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
 
           <div style={{ marginBottom: "15px" }}>
             <label style={styles.label}>Date</label>
-            <input type="date" style={styles.input} {...register("date")} />
+            {/* no min: an expense may have been paid on an earlier day */}
+            <Controller
+              name="date"
+              control={control}
+              render={({ field }) => (
+                <DatePicker id="expense-date" value={field.value} onChange={field.onChange} />
+              )}
+            />
             {errors.date && <p style={styles.fieldError}>{errors.date.message}</p>}
           </div>
 
