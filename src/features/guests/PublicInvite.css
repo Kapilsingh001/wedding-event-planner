@@ -1,0 +1,107 @@
+.public-invite-container {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  background: var(--bg);
+}
+
+.public-invite-content {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.public-invite-card {
+  margin: 0;
+  box-shadow: 0 10px 25px -5px rgba(232, 93, 117, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+.public-invite-card-wrapper {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 40px 24px;
+  text-align: center;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: var(--shadow);
+}
+
+.public-rsvp-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.public-rsvp-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.public-rsvp-sub {
+  font-size: 13.5px;
+  color: var(--text-gray);
+  margin-bottom: 18px;
+}
+
+.public-rsvp-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.public-rsvp-buttons .btn {
+  flex: 1;
+  min-width: 120px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13.5px;
+  padding: 10px 14px;
+}
+
+.btn-rsvp-active {
+  background: #10B981 !important;
+  color: #FFFFFF !important;
+  border-color: #059669 !important;
+  font-weight: 600;
+}
+
+.btn-rsvp-declined {
+  background: var(--pink-dark) !important;
+  color: #FFFFFF !important;
+  border-color: var(--pink-deeper) !important;
+  font-weight: 600;
+}
+
+.btn-rsvp-tentative {
+  background: #F59E0B !important;
+  color: #FFFFFF !important;
+  border-color: #D97706 !important;
+  font-weight: 600;
+}
+
+.public-rsvp-alert {
+  margin-bottom: 14px;
+  font-size: 13.5px;
+}
+
+.public-invite-actions {
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 6px;
+}

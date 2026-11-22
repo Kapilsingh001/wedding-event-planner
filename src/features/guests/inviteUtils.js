@@ -13,20 +13,25 @@ export function formatInviteDate(dateStr) {
   });
 }
 
-export function buildInviteMessage(guest, event, hostName) {
+export function buildInviteMessage(guest, event, hostName, inviteUrl = '') {
   const guestName = guest?.name || 'Guest';
   const eventTitle = event?.title || 'Our Event';
   const eventType = event?.type ? ` (${event.type})` : '';
-  const formattedDate = formatInviteDate(event?.date);
+  const formattedDate = formatInviteDate(event?.date) || 'Date to be announced';
   const venue = event?.venue ? `\nVenue: ${event.venue}` : '';
   const sender = hostName || 'The Host';
+  const linkSection = inviteUrl ? `\n\nView Digital Card & RSVP:\n${inviteUrl}` : '';
 
-  return `Dear ${guestName},
+  return `*YOU ARE INVITED*
 
-You are warmly invited to ${eventTitle}${eventType}.
-Date: ${formattedDate}${venue}
+Dear ${guestName},
 
-Please let us know if you can come.
+You are warmly invited to celebrate with us:
+*${eventTitle}*${eventType}
+
+Date: ${formattedDate}${venue}${linkSection}
+
+Please let us know if you can make it!
 
 With love,
 ${sender}`;

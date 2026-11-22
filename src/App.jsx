@@ -13,6 +13,7 @@ import Events from './features/planning/Events.jsx'
 import Tasks from './pages/Tasks.jsx'
 import Timeline from './pages/Timeline.jsx'
 import NotFound from './pages/NotFound.jsx'
+import PublicInvite from './features/guests/PublicInvite.jsx'
 
 // All the pages. Every time the address changes we scroll to the top and
 // play a short fade-in, so moving between pages feels smooth.
@@ -30,6 +31,7 @@ function Pages() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/invite/:id" element={<PublicInvite />} />
         <Route path="/vendors" element={<Vendors />} />
         <Route path="/vendors/:id" element={<VendorDetail />} />
         <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
