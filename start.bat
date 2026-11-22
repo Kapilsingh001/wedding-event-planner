@@ -16,5 +16,7 @@ start "API - JSON Server (port 3001)" cmd /k npx json-server db.json --port 3001
 start "Website - Vite (port 5173)" cmd /k npm run dev
 
 rem give both servers a few seconds to start, then open the website
+rem 127.0.0.1 is the same as localhost. We use the number address because
+rem WhatsApp only makes an invitation link clickable when it is a number address.
 timeout /t 6 /nobreak >nul
-start http://localhost:5173
+start http://127.0.0.1:5173
