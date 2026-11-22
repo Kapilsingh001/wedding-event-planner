@@ -3,7 +3,7 @@
 // once the page has been drawn, and then removes it from the page.
 
 // how long the loading screen stays, so the logo animation can be seen
-export const SPLASH_MIN_MS = 2400
+export const SPLASH_MIN_MS = 3300
 // how long the fade takes. It must match the transition in public/splash.css
 export const SPLASH_FADE_MS = 500
 
