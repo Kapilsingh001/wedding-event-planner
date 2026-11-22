@@ -7,7 +7,7 @@ import { eventSchema } from "./schemas";
 import Dropdown from "../../components/Dropdown.jsx";
 import DatePicker from "../../components/DatePicker.jsx";
 
-const EVENT_TYPES = ["Wedding", "Engagement", "Reception", "Birthday", "Anniversary"];
+const EVENT_TYPES = ["Wedding", "Haldi", "Mehendi", "Sangeet", "Engagement", "Reception", "Birthday", "Anniversary"];
 const TYPE_OPTIONS = EVENT_TYPES.map((type) => ({ value: type, label: type }));
 
 export default function CreateEventForm({ onClose, onSaved, event }) {
