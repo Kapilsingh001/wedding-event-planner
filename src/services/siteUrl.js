@@ -8,7 +8,7 @@
 // .localtest.me answers with 127.0.0.1, which means "this computer". So the
 // link below is a real domain name, and it still opens our local website.
 // It can be changed with VITE_LOCAL_SHARE_HOST in the .env file.
-const LOCAL_SHARE_HOST = import.meta.env.VITE_LOCAL_SHARE_HOST || 'wedding-planner.localtest.me'
+const LOCAL_SHARE_HOST = import.meta.env.VITE_LOCAL_SHARE_HOST || 'kalyanam.localtest.me'
 
 // On localhost it returns the address with the local domain name.
 // A hosted website (a real address) is returned unchanged.

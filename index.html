@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wedding Planner</title>
+    <title>Kalyanam | Wedding &amp; Event Planner</title>
     <meta name="description" content="Plan your wedding in one place: vendors, ceremonies, budget, guests and digital invitations." />
 
     <!-- Link preview. When a link of this website is sent on WhatsApp, WhatsApp
@@ -12,8 +12,8 @@
          It does not run JavaScript, so the tags must be here in the HTML.
          %VITE_SITE_URL% is the public address of the website (see vite.config.js). -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Wedding Planner" />
-    <meta property="og:title" content="Wedding Invitation | Wedding Planner" />
+    <meta property="og:site_name" content="Kalyanam" />
+    <meta property="og:title" content="Wedding Invitation | Kalyanam" />
     <meta property="og:description" content="You are invited. Open the link to see your invitation card and send your RSVP." />
     <meta property="og:image" content="%VITE_SITE_URL%/og-invite.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
@@ -42,6 +42,8 @@
     <!-- Styles of the loading screen. A small local file, linked here and not
          from React, so the loading screen is styled from the very first moment. -->
     <link rel="stylesheet" href="/splash.css" />
+    <!-- start loading the logo at once, so the loading screen never waits for it -->
+    <link rel="preload" as="image" href="/logo.webp" type="image/webp" />
 
     <!-- The fonts come from the internet, so they must not hold the page back.
          media="print" lets the browser load them in the background, and onload
@@ -58,27 +60,32 @@
   <body>
     <!-- Full-screen loading screen. It is plain HTML and CSS, so it shows
          before React is ready. src/splash.js fades it out when the page is drawn. -->
-    <div id="splash" role="status" aria-label="Loading Wedding Planner">
+    <div id="splash" role="status" aria-label="Loading Kalyanam">
+      <!-- rose petals drifting down behind the logo -->
+      <div class="splash-petals" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+
       <div class="splash-inner">
         <div class="splash-logo">
+          <span class="splash-glow"></span>
           <span class="splash-ring"></span>
           <span class="splash-ring splash-ring-2"></span>
 
-          <!-- the gem from the navbar logo, drawn line by line -->
-          <svg class="splash-gem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path class="splash-gem-fill" d="M6 3h12l4 6-10 13L2 9Z" />
-            <path class="splash-line" pathLength="1" d="M6 3h12l4 6-10 13L2 9Z" />
-            <path class="splash-line splash-line-2" pathLength="1" d="M11 3 8 9l4 13 4-13-3-6" />
-            <path class="splash-line splash-line-3" pathLength="1" d="M2 9h20" />
-          </svg>
+          <!-- the logo is uncovered from bottom to top, then a band of light sweeps over it -->
+          <div class="splash-art">
+            <img class="splash-mark" src="/logo.webp" alt="" width="560" height="510" />
+            <span class="splash-shine"></span>
+          </div>
 
           <svg class="splash-spark splash-spark-1" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
           <svg class="splash-spark splash-spark-2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
           <svg class="splash-spark splash-spark-3" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
         </div>
 
-        <p class="splash-name">Wedding Planner</p>
-        <p class="splash-tag">Plan your perfect day</p>
+        <p class="splash-name">Kalyanam</p>
+        <p class="splash-tag">Wedding &amp; Event Planner</p>
         <div class="splash-bar"><span></span></div>
       </div>
     </div>

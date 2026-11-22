@@ -22,8 +22,10 @@
   margin-bottom: 12px;
 }
 
-.footer-logo svg {
-  color: var(--pink);
+/* the logo picture; the height is set and the width follows */
+.footer-logo img {
+  width: auto;
+  height: 38px;
 }
 
 .footer-brand p:last-child {

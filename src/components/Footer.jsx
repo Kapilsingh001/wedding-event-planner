@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import Icon from './Icons.jsx'
 import './Footer.css'
 
 function Footer() {
@@ -9,8 +8,8 @@ function Footer() {
 
         <div className="footer-brand">
           <p className="footer-logo">
-            <Icon name="gem" size={20} />
-            Wedding Planner
+            <img src="/logo-small.webp" alt="" width="144" height="131" />
+            Kalyanam
           </p>
           <p>Plan your perfect wedding without the planning chaos.</p>
         </div>
@@ -32,7 +31,7 @@ function Footer() {
       </div>
 
       <div className="container footer-bottom">
-        <p>&copy; 2026 Wedding Planner</p>
+        <p>&copy; 2026 Kalyanam</p>
         <p>Academic Project, GLA University</p>
       </div>
     </footer>
