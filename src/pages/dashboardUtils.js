@@ -40,3 +40,21 @@ export function daysUntil(date, today) {
   const oneDay = 1000 * 60 * 60 * 24
   return Math.round((new Date(date) - new Date(today)) / oneDay)
 }
+
+// The next few events that have not happened yet, soonest first
+export function getUpcomingEvents(events, today, limit = 3) {
+  return events
+    .filter((event) => event.date && event.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, limit)
+}
+
+// The "get started" checklist: each step is done once the user has that kind of data
+export function getSetupSteps({ events, guests, tasks, shortlisted }) {
+  return [
+    { key: 'event', title: 'Create your first event', text: 'Set the date, venue and budget.', to: '/events', done: events.length > 0 },
+    { key: 'guests', title: 'Add your guests', text: 'Track who is attending.', to: '/guests', done: guests.length > 0 },
+    { key: 'tasks', title: 'Build your checklist', text: 'Plan what needs to be done.', to: '/tasks', done: tasks.length > 0 },
+    { key: 'vendors', title: 'Shortlist vendors', text: 'Save the ones you like.', to: '/vendors', done: shortlisted.length > 0 },
+  ]
+}

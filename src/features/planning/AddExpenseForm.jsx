@@ -7,6 +7,9 @@ import DatePicker from "../../components/DatePicker.jsx";
 import { EXPENSE_CATEGORIES } from "./budgetUtils";
 import { expenseSchema } from "./schemas";
 
+
+const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map((cat) => ({ value: cat, label: cat }));
+
 const STATUS_OPTIONS = [
   { value: "Paid", label: "Paid" },
   { value: "Pending", label: "Pending" },
@@ -17,10 +20,10 @@ export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
   const [error, setError] = useState("");
   const today = new Date().toLocaleDateString("en-CA");
 
-  const {
+    const {
     register,
-    handleSubmit,
     control,
+    handleSubmit,
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -77,11 +80,14 @@ export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div style={{ marginBottom: "15px" }}>
             <label style={styles.label}>Category</label>
-            <select style={styles.input} {...register("category")}>
-              {EXPENSE_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+            {/* Controller connects the shared Dropdown / DatePicker to React Hook Form */}
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <Dropdown label="Category" value={field.value} onChange={field.onChange} options={CATEGORY_OPTIONS} />
+              )}
+            />
             {errors.category && <p style={styles.fieldError}>{errors.category.message}</p>}
           </div>
 
@@ -93,7 +99,14 @@ export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
 
           <div style={{ marginBottom: "15px" }}>
             <label style={styles.label}>Date</label>
-            <input type="date" style={styles.input} {...register("date")} />
+            {/* no min: an expense may have been paid on an earlier day */}
+            <Controller
+              name="date"
+              control={control}
+              render={({ field }) => (
+                <DatePicker id="expense-date" value={field.value} onChange={field.onChange} />
+              )}
+            />
             {errors.date && <p style={styles.fieldError}>{errors.date.message}</p>}
           </div>
 

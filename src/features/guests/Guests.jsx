@@ -1,22 +1,37 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import api from '../../services/api';
 import { getUser } from '../auth/auth.js';
 import { guestSchema } from './guestSchema.js';
 import { countByRsvp } from './guestUtils.js';
+import Dropdown from '../../components/Dropdown.jsx';
+import InviteModal from './InviteModal.jsx';
 import './Guests.css';
+
+const SIDE_OPTIONS = [
+  { value: 'Bride', label: 'Bride' },
+  { value: 'Groom', label: 'Groom' },
+];
+const RSVP_OPTIONS = [
+  { value: 'Pending', label: 'Pending' },
+  { value: 'Attending', label: 'Attending' },
+  { value: 'Declined', label: 'Declined' },
+];
+const FILTER_OPTIONS = [{ value: 'All', label: 'All RSVPs' }, ...RSVP_OPTIONS];
 
 export default function Guests() {
   const reduxUser = useSelector((state) => state.auth?.user);
   const user = reduxUser || getUser();
+  const hostName = user?.name || 'Host';
 
   const [guests, setGuests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [selectedGuestForInvite, setSelectedGuestForInvite] = useState(null);
 
   // Filter & Search state
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,6 +40,7 @@ export default function Guests() {
   // React Hook Form for adding guests
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -121,6 +137,16 @@ export default function Guests() {
     }
   };
 
+  // Callback when a guest is invited through the modal
+  const handleGuestInvited = (updatedGuest) => {
+    setGuests((prev) =>
+      prev.map((g) => (g.id === updatedGuest.id ? { ...g, ...updatedGuest, invited: true } : g))
+    );
+    if (selectedGuestForInvite && selectedGuestForInvite.id === updatedGuest.id) {
+      setSelectedGuestForInvite((prev) => ({ ...prev, ...updatedGuest, invited: true }));
+    }
+  };
+
   // Filtered guests list for display
   const displayedGuests = useMemo(() => {
     return guests.filter((g) => {
@@ -212,14 +238,14 @@ export default function Guests() {
               <label htmlFor="guest-side" className="guests-label">
                 Side
               </label>
-              <select
-                id="guest-side"
-                className="guests-select"
-                {...register('side')}
-              >
-                <option value="Bride">Bride</option>
-                <option value="Groom">Groom</option>
-              </select>
+              {/* Controller connects the shared Dropdown to React Hook Form */}
+              <Controller
+                name="side"
+                control={control}
+                render={({ field }) => (
+                  <Dropdown id="guest-side" value={field.value} onChange={field.onChange} options={SIDE_OPTIONS} />
+                )}
+              />
               {errors.side && (
                 <span className="guests-field-error" style={{ color: '#c93f59', fontSize: '12px', marginTop: '4px' }}>
                   {errors.side.message}
@@ -253,17 +279,13 @@ export default function Guests() {
 
           <div className="guests-filter-wrapper">
             <label htmlFor="guest-filter" className="guests-filter-label">Filter RSVP:</label>
-            <select
+            <Dropdown
               id="guest-filter"
-              className="guests-select guests-filter-select"
+              className="guests-filter-select"
               value={rsvpFilter}
-              onChange={(e) => setRsvpFilter(e.target.value)}
-            >
-              <option value="All">All RSVPs</option>
-              <option value="Pending">Pending</option>
-              <option value="Attending">Attending</option>
-              <option value="Declined">Declined</option>
-            </select>
+              onChange={setRsvpFilter}
+              options={FILTER_OPTIONS}
+            />
           </div>
         </div>
       </section>
@@ -322,7 +344,14 @@ export default function Guests() {
                 {displayedGuests.map((guest) => (
                   <tr key={guest.id}>
                     <td className="guests-name-cell">
-                      <strong>{guest.name}</strong>
+                      <div className="guests-name-container">
+                        <strong>{guest.name}</strong>
+                        {guest.invited === true && (
+                          <span className="ui-badge guests-invited-tag">
+                            Invited
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="guests-phone-cell">
                       {guest.phone ? (
@@ -339,27 +368,35 @@ export default function Guests() {
                       </span>
                     </td>
                     <td>
-                      <select
-                        className={`guests-rsvp-select guests-rsvp-${guest.rsvp.toLowerCase()}`}
+                      <Dropdown
+                        id={`rsvp-${guest.id}`}
+                        className={`guests-rsvp-dd guests-rsvp-dd-${guest.rsvp.toLowerCase()}`}
                         value={guest.rsvp}
-                        aria-label={`RSVP for ${guest.name}`}
-                        onChange={(e) => handleRsvpChange(guest.id, e.target.value)}
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Attending">Attending</option>
-                        <option value="Declined">Declined</option>
-                      </select>
+                        label={`RSVP for ${guest.name}`}
+                        onChange={(value) => handleRsvpChange(guest.id, value)}
+                        options={RSVP_OPTIONS}
+                      />
                     </td>
                     <td className="guests-actions-col">
-                      <button
-                        type="button"
-                        className="guests-delete-btn"
-                        onClick={() => handleDelete(guest.id, guest.name)}
-                        title={`Delete ${guest.name}`}
-                        aria-label={`Delete ${guest.name}`}
-                      >
-                        Delete
-                      </button>
+                      <div className="guests-row-actions">
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-xs guests-action-invite-btn"
+                          onClick={() => setSelectedGuestForInvite(guest)}
+                          title={`Invite ${guest.name}`}
+                        >
+                          Invite
+                        </button>
+                        <button
+                          type="button"
+                          className="guests-delete-btn"
+                          onClick={() => handleDelete(guest.id, guest.name)}
+                          title={`Delete ${guest.name}`}
+                          aria-label={`Delete ${guest.name}`}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -368,6 +405,16 @@ export default function Guests() {
           </div>
         )}
       </section>
+
+      {/* Digital Invitation Modal */}
+      {selectedGuestForInvite && (
+        <InviteModal
+          guest={selectedGuestForInvite}
+          hostName={hostName}
+          onClose={() => setSelectedGuestForInvite(null)}
+          onInvited={handleGuestInvited}
+        />
+      )}
     </div>
   );
 }

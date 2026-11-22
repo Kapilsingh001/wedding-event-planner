@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import store from './features/auth/store.js'
 import './index.css'
+import './ui.css'
 import App from './App.jsx'
 import { getTheme, applyTheme } from './theme.js'
 

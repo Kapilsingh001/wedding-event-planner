@@ -50,5 +50,7 @@
   "events": [],
   "expenses": [],
   "guests": [],
-  "tasks":[]
+    "tasks": [],
+  "bookings": []
+
 }

@@ -4,7 +4,9 @@ import api from '../services/api'
 import { getUser } from '../features/auth/auth'
 import { getShortlist } from '../features/vendors/shortlist'
 import Icon from '../components/Icons.jsx'
-import { summarizeBudget, summarizeGuests, summarizeTasks, getNextEvent, daysUntil } from './dashboardUtils'
+import {
+  summarizeBudget, summarizeGuests, summarizeTasks, getNextEvent, daysUntil, getUpcomingEvents, getSetupSteps,
+} from './dashboardUtils'
 import './UserDashboard.css'
 
 function formatMoney(value) {
@@ -66,30 +68,79 @@ function UserDashboard() {
   const guests = summarizeGuests(data.guests)
   const tasks = summarizeTasks(data.tasks)
   const nextEvent = getNextEvent(data.events, today)
+  const daysLeft = nextEvent ? daysUntil(nextEvent.date, today) : null
   const overBudget = budget.totalSpent > budget.totalBudget
+  const upcomingEvents = getUpcomingEvents(data.events, today)
+  const steps = getSetupSteps(data)
+  const stepsDone = steps.filter((step) => step.done).length
 
   const upcomingTasks = data.tasks
     .filter((task) => !task.done)
     .sort((a, b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999'))
     .slice(0, 4)
 
+  // money spent on one event, for the small bars in "Upcoming events"
+  const spentOn = (eventId) =>
+    data.expenses.filter((expense) => expense.eventId === eventId).reduce((sum, expense) => sum + Number(expense.amount), 0)
+
   return (
     <div className="container dash">
-      <header className="dash-header">
-        <div>
+      {/* ---------- welcome banner with photo and countdown ---------- */}
+      <header className="dash-hero">
+        <div className="dash-hero-photo" aria-hidden="true" />
+        <div className="dash-hero-text">
           <p className="dash-eyebrow">Your wedding dashboard</p>
           <h1>Welcome back, {firstName}</h1>
-          <p className="dash-sub">
-            {nextEvent
-              ? `${nextEvent.title} is in ${daysUntil(nextEvent.date, today)} days. Here is where everything stands.`
-              : 'Plan your first event to see your progress here.'}
-          </p>
+          {nextEvent ? (
+            <p className="dash-sub">
+              <strong>{nextEvent.title}</strong> is on {formatDate(nextEvent.date)}
+              {nextEvent.venue ? ` at ${nextEvent.venue}` : ''}. Here is where everything stands.
+            </p>
+          ) : (
+            <p className="dash-sub">Plan your first event to see your progress here.</p>
+          )}
+          <div className="dash-hero-actions">
+            <Link to="/events" className="btn">
+              <Icon name="plus" size={18} /> Plan an Event
+            </Link>
+            <Link to="/vendors" className="btn btn-ghost">
+              <Icon name="store" size={18} /> Find Vendors
+            </Link>
+          </div>
         </div>
-        <Link to="/events" className="btn">
-          <Icon name="plus" size={18} /> Plan an Event
-        </Link>
+
+        {nextEvent && (
+          <div className="dash-countdown" aria-label={`${daysLeft} days until ${nextEvent.title}`}>
+            <strong>{daysLeft}</strong>
+            <span>{daysLeft === 1 ? 'day to go' : 'days to go'}</span>
+          </div>
+        )}
       </header>
 
+      {/* ---------- get started steps (hidden once all four are done) ---------- */}
+      {stepsDone < steps.length && (
+        <section className="dash-steps" aria-labelledby="dash-steps-title">
+          <div className="dash-steps-head">
+            <h2 id="dash-steps-title">Get started</h2>
+            <span>{stepsDone} of {steps.length} done</span>
+          </div>
+          <ol>
+            {steps.map((step, index) => (
+              <li key={step.key} className={step.done ? 'done' : ''}>
+                <Link to={step.to}>
+                  <span className="dash-step-mark">{step.done ? <Icon name="check" size={16} /> : index + 1}</span>
+                  <span>
+                    <strong>{step.title}</strong>
+                    <small>{step.text}</small>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {/* ---------- four summary cards ---------- */}
       <section className="dash-stats" aria-label="Summary">
         <article className="dash-card">
           <div className="dash-card-top">
@@ -138,14 +189,50 @@ function UserDashboard() {
             <div className="dash-bar-fill" style={{ width: `${tasks.percent}%` }} />
           </div>
           <p className="dash-detail">{tasks.percent}% of the checklist done</p>
+          <Link to="/tasks" className="dash-link">Open checklist <Icon name="arrow" size={16} /></Link>
         </article>
       </section>
 
+      {/* ---------- three lists ---------- */}
       <div className="dash-grid">
+        <section className="dash-panel" aria-labelledby="dash-events-title">
+          <h2 id="dash-events-title">Upcoming events</h2>
+          {upcomingEvents.length === 0 ? (
+            <div className="dash-empty">
+              <span className="dash-empty-icon"><Icon name="calendar" size={22} /></span>
+              <p>No upcoming events.</p>
+              <Link to="/events">Plan an event</Link>
+            </div>
+          ) : (
+            <ul className="dash-list">
+              {upcomingEvents.map((event) => {
+                const spent = spentOn(event.id)
+                const percent = Number(event.budget) > 0 ? Math.round((spent / Number(event.budget)) * 100) : 0
+                return (
+                  <li key={event.id} className="dash-event">
+                    <div className="dash-event-top">
+                      <strong>{event.title}</strong>
+                      <small>{daysUntil(event.date, today)} days</small>
+                    </div>
+                    <small>{formatDate(event.date)} · {formatMoney(spent)} of {formatMoney(event.budget)}</small>
+                    <div className="dash-bar">
+                      <div className={percent > 100 ? 'dash-bar-fill over' : 'dash-bar-fill'} style={{ width: `${Math.min(percent, 100)}%` }} />
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
+
         <section className="dash-panel" aria-labelledby="dash-tasks-title">
           <h2 id="dash-tasks-title">Next tasks</h2>
           {upcomingTasks.length === 0 ? (
-            <p className="dash-muted">Nothing pending. <Link to="/tasks">Open checklist</Link></p>
+            <div className="dash-empty">
+              <span className="dash-empty-icon"><Icon name="list" size={22} /></span>
+              <p>Nothing pending.</p>
+              <Link to="/tasks">Open checklist</Link>
+            </div>
           ) : (
             <ul className="dash-list">
               {upcomingTasks.map((task) => (
@@ -163,7 +250,11 @@ function UserDashboard() {
         <section className="dash-panel" aria-labelledby="dash-vendors-title">
           <h2 id="dash-vendors-title">Shortlisted vendors</h2>
           {data.shortlisted.length === 0 ? (
-            <p className="dash-muted">No vendors shortlisted yet. <Link to="/vendors">Browse vendors</Link></p>
+            <div className="dash-empty">
+              <span className="dash-empty-icon"><Icon name="heart" size={22} /></span>
+              <p>No vendors shortlisted yet.</p>
+              <Link to="/vendors">Browse vendors</Link>
+            </div>
           ) : (
             <ul className="dash-list">
               {data.shortlisted.map((vendor) => (
@@ -177,16 +268,6 @@ function UserDashboard() {
               ))}
             </ul>
           )}
-        </section>
-
-        <section className="dash-panel" aria-labelledby="dash-actions-title">
-          <h2 id="dash-actions-title">Quick actions</h2>
-          <div className="dash-actions">
-            <Link to="/events"><Icon name="calendar" size={18} /> Plan an event</Link>
-            <Link to="/guests"><Icon name="users" size={18} /> Add guests</Link>
-            <Link to="/tasks"><Icon name="list" size={18} /> Open checklist</Link>
-            <Link to="/vendors"><Icon name="store" size={18} /> Find vendors</Link>
-          </div>
         </section>
       </div>
     </div>
