@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { getShortlist, toggleShortlist } from './shortlist';
 import { matchesPriceRange, getTotalPages, paginate } from './vendorUtils';
+import { getUser } from '../auth/auth';
+import MyBookings from './MyBookings';
 import Dropdown from '../../components/Dropdown.jsx';
 
 const PRICE_OPTIONS = [
@@ -103,6 +105,12 @@ export default function Vendors() {
   const [error, setError] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
 
+  // Booking requests of the logged-in user
+  const user = getUser();
+  const userId = user ? String(user.id) : null;
+  const [bookings, setBookings] = useState([]);
+  const [bookingError, setBookingError] = useState('');
+
   // Dropdown options (loaded once)
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -158,6 +166,33 @@ export default function Vendors() {
 
     fetchVendors();
   }, [selectedCity, selectedCategory]);
+
+  // Load all bookings once, then keep only this user's bookings
+  useEffect(() => {
+    if (!userId) {
+      setBookings([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const loadBookings = async () => {
+      try {
+        const { data } = await api.get('/bookings');
+        if (!cancelled) {
+          setBookings(data.filter((booking) => String(booking.userId) === userId));
+        }
+      } catch (err) {
+        console.warn('Could not load bookings');
+      }
+    };
+
+    loadBookings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   // Go back to page 1 whenever any filter, sort or the shortlist toggle changes
   useEffect(() => {
@@ -223,6 +258,19 @@ export default function Vendors() {
   // Remove button on a My Shortlist chip
   const handleRemoveFromShortlist = (vendorId) => {
     setShortlist(toggleShortlist(vendorId));
+  };
+
+  // Cancel button in My booking requests: ask first, then DELETE /bookings/:id
+  const handleCancelBooking = async (booking) => {
+    if (!window.confirm('Cancel this booking request?')) return;
+
+    try {
+      await api.delete(`/bookings/${booking.id}`);
+      setBookings((prev) => prev.filter((item) => item.id !== booking.id));
+      setBookingError('');
+    } catch (err) {
+      setBookingError(err.message || 'Could not cancel the request. Please try again.');
+    }
   };
 
   // ---------- styles ----------
@@ -644,6 +692,18 @@ export default function Vendors() {
                 </span>
               ))}
             </div>
+          </div>
+        )}
+
+        {bookingError && (
+          <div className="ui-alert ui-alert-error" role="alert" style={{ margin: '0 0 22px' }}>
+            {bookingError}
+          </div>
+        )}
+
+        {bookings.length > 0 && (
+          <div style={{ margin: '0 0 22px' }}>
+            <MyBookings bookings={bookings} onCancel={handleCancelBooking} />
           </div>
         )}
 
