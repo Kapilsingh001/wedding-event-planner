@@ -1,5 +1,7 @@
 # Wedding and Event Planning Management Platform
 
+The website is called **Kalyanam**, a word that means "wedding" and "auspicious".
+
 GLA University, B.Tech CSE 3rd Year mini project, Group 7.
 Mentor: Yash Singh
 

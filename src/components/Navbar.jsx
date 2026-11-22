@@ -32,8 +32,8 @@ function Navbar() {
     <header className="navbar">
       <div className="container navbar-inner">
         <Link to="/" className="navbar-logo" onClick={() => setOpen(false)}>
-          <Icon name="gem" size={22} />
-          <span>Wedding Planner</span>
+          <img src="/logo-small.webp" alt="" width="144" height="131" />
+          <span>Kalyanam</span>
         </Link>
 
         <button
