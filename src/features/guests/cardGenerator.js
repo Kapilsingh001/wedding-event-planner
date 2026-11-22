@@ -127,9 +127,82 @@ function truncateText(ctx, text, maxWidth) {
   return `${truncated}...`;
 }
 
+// Colours and fonts of the wedding card
+const CARD = {
+  gold: '#C29A45',
+  goldSoft: '#E2C98F',
+  maroon: '#8E2440',
+  rose: '#C93F59',
+  ink: '#3A2A2E',
+  muted: '#7A6A6E',
+  serif: '"Playfair Display", Georgia, "Times New Roman", serif',
+  sans: 'Poppins, "Segoe UI", Roboto, Arial, sans-serif',
+};
+
 /**
- * Generate a high-resolution Canvas representation of the Digital Invitation Card
- * Formatted with snug proportions matching the screenshot
+ * Small diamond shape, used in the ornaments
+ */
+function drawDiamond(ctx, cx, cy, size, color) {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - size);
+  ctx.lineTo(cx + size, cy);
+  ctx.lineTo(cx, cy + size);
+  ctx.lineTo(cx - size, cy);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * Ornament: line - diamond - line, centred on cx
+ */
+function drawOrnament(ctx, cx, cy, halfWidth) {
+  ctx.save();
+  ctx.strokeStyle = CARD.gold;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx - halfWidth, cy);
+  ctx.lineTo(cx - 14, cy);
+  ctx.moveTo(cx + 14, cy);
+  ctx.lineTo(cx + halfWidth, cy);
+  ctx.stroke();
+  ctx.restore();
+
+  drawDiamond(ctx, cx, cy, 5, CARD.gold);
+  drawDiamond(ctx, cx - halfWidth - 6, cy, 2.5, CARD.goldSoft);
+  drawDiamond(ctx, cx + halfWidth + 6, cy, 2.5, CARD.goldSoft);
+}
+
+/**
+ * Curved flourish in one corner. dx and dy are 1 or -1 and choose the corner.
+ */
+function drawCornerFlourish(ctx, x, y, dx, dy) {
+  ctx.save();
+  ctx.strokeStyle = CARD.gold;
+  ctx.lineWidth = 1.4;
+  ctx.lineCap = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(x, y + dy * 58);
+  ctx.quadraticCurveTo(x, y, x + dx * 58, y);
+  ctx.stroke();
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = CARD.goldSoft;
+  ctx.beginPath();
+  ctx.moveTo(x + dx * 6, y + dy * 36);
+  ctx.quadraticCurveTo(x + dx * 6, y + dy * 6, x + dx * 36, y + dy * 6);
+  ctx.stroke();
+  ctx.restore();
+
+  drawDiamond(ctx, x + dx * 17, y + dy * 17, 3.5, CARD.gold);
+}
+
+/**
+ * Generate a high-resolution Canvas of the Digital Invitation Card.
+ * Wedding style: cream paper, gold double border, corner flourishes.
  */
 export function generateInviteCardCanvas({ guest, event, hostName }) {
   if (typeof document === 'undefined') {
@@ -152,186 +225,168 @@ export function generateInviteCardCanvas({ guest, event, hostName }) {
 
   ctx.scale(dpr, dpr);
 
-  // 1. Overall Canvas Background
-  ctx.fillStyle = '#FFFFFF';
+  const centerX = width / 2;
+
+  // 1. Paper background: warm cream fading to soft rose
+  const paper = ctx.createLinearGradient(0, 0, 0, height);
+  paper.addColorStop(0, '#FFF9F2');
+  paper.addColorStop(0.6, '#FFF3EE');
+  paper.addColorStop(1, '#FBE6E8');
+  ctx.fillStyle = paper;
   ctx.fillRect(0, 0, width, height);
 
-  // 2. Outer Card with Dashed Border
-  const outerX = 14;
-  const outerY = 14;
-  const outerW = width - 28;
-  const outerH = height - 28;
-  const outerR = 20;
-
+  // 2. Gold double border
   ctx.save();
-  ctx.fillStyle = '#FFF8F9';
-  drawRoundedRect(ctx, outerX, outerY, outerW, outerH, outerR);
-  ctx.fill();
-
-  ctx.setLineDash([7, 6]);
-  ctx.lineWidth = 1.8;
-  ctx.strokeStyle = '#F3D7DC';
+  ctx.strokeStyle = CARD.gold;
+  ctx.lineWidth = 2;
+  drawRoundedRect(ctx, 14, 14, width - 28, height - 28, 8);
   ctx.stroke();
-  ctx.restore();
 
-  // 3. Inner Card with Gradient Background & Solid Border
-  const innerX = 28;
-  const innerY = 28;
-  const innerW = width - 56;
-  const innerH = height - 56;
-  const innerR = 16;
-
-  ctx.save();
-  const bgGrad = ctx.createLinearGradient(innerX, innerY, innerX, innerY + innerH);
-  bgGrad.addColorStop(0, '#FCEEF0');
-  bgGrad.addColorStop(0.35, '#FFF7F8');
-  bgGrad.addColorStop(1, '#FFFFFF');
-
-  ctx.fillStyle = bgGrad;
-  drawRoundedRect(ctx, innerX, innerY, innerW, innerH, innerR);
-  ctx.fill();
-
-  ctx.strokeStyle = '#F3D7DC';
+  ctx.strokeStyle = CARD.goldSoft;
   ctx.lineWidth = 1;
+  drawRoundedRect(ctx, 21, 21, width - 42, height - 42, 5);
   ctx.stroke();
   ctx.restore();
 
-  // 4. Content inside Inner Card (Centered)
-  const centerX = width / 2;
-  let curY = innerY + 36;
+  // 3. A flourish in each corner
+  drawCornerFlourish(ctx, 30, 30, 1, 1);
+  drawCornerFlourish(ctx, width - 30, 30, -1, 1);
+  drawCornerFlourish(ctx, 30, height - 30, 1, -1);
+  drawCornerFlourish(ctx, width - 30, height - 30, -1, -1);
 
-  // Eyebrow: YOU ARE INVITED
+  // The title decides how much room is left, so measure it first
+  const titleText = event?.title || 'Our Celebration';
+  ctx.save();
+  ctx.font = `bold 36px ${CARD.serif}`;
+  const titleLines = wrapText(ctx, titleText, width - 150).slice(0, 2);
+  ctx.restore();
+
+  // a one-line title leaves spare room, which is shared out as extra spacing
+  const gap = titleLines.length > 1 ? 0 : 8;
+  let curY = 62 + gap;
+
+  // 4. Top ornament
+  drawOrnament(ctx, centerX, curY, 60);
+
+  curY += 34;
+
+  // 5. Eyebrow: YOU ARE INVITED
   ctx.save();
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#C93F59';
-  ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = CARD.gold;
+  ctx.font = `600 12px ${CARD.sans}`;
   if ('letterSpacing' in ctx) {
-    ctx.letterSpacing = '3px';
+    ctx.letterSpacing = '4px';
   }
   ctx.fillText('YOU ARE INVITED', centerX, curY);
   ctx.restore();
 
-  curY += 30;
+  curY += 48;
 
-  // Event Title
-  const titleText = event?.title || 'Our Celebration';
+  // 6. Event title
   ctx.save();
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#1E293B';
-  ctx.font = 'bold 26px "Playfair Display", Georgia, serif';
-  const titleLines = wrapText(ctx, titleText, innerW - 60);
-  titleLines.slice(0, 2).forEach((line) => {
+  ctx.fillStyle = CARD.maroon;
+  ctx.font = `bold 36px ${CARD.serif}`;
+  titleLines.forEach((line, index) => {
+    if (index > 0) curY += 42;
     ctx.fillText(line, centerX, curY);
-    curY += 32;
   });
   ctx.restore();
 
-  // Event Type Pill (if provided)
+  curY += 20;
+
+  // 7. Event type pill (if provided)
   if (event?.type) {
     ctx.save();
-    ctx.font = '600 11.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = `600 12px ${CARD.sans}`;
     const textWidth = ctx.measureText ? ctx.measureText(event.type).width : 60;
-    const pillW = textWidth + 24;
-    const pillH = 22;
+    const pillW = textWidth + 30;
+    const pillH = 24;
     const pillX = centerX - pillW / 2;
-    const pillY = curY - 2;
 
-    ctx.fillStyle = '#FFFFFF';
-    drawRoundedRect(ctx, pillX, pillY, pillW, pillH, 999);
+    ctx.fillStyle = CARD.rose;
+    drawRoundedRect(ctx, pillX, curY, pillW, pillH, 12);
     ctx.fill();
-    ctx.strokeStyle = '#F3D7DC';
-    ctx.lineWidth = 1;
-    ctx.stroke();
 
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#C93F59';
-    ctx.fillText(event.type, centerX, pillY + 15);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(event.type, centerX, curY + 16);
     ctx.restore();
 
-    curY += 30;
-  } else {
-    curY += 10;
+    curY += pillH;
   }
 
-  // Divider
+  curY += 26 + gap;
+
+  // 8. Greeting: Dear <name>,
+  const guestName = guest?.name || 'Guest';
   ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(centerX - 20, curY);
-  ctx.lineTo(centerX + 20, curY);
-  ctx.strokeStyle = '#E85D75';
-  ctx.lineWidth = 2.5;
-  ctx.lineCap = 'round';
-  ctx.stroke();
+  ctx.textAlign = 'center';
+  ctx.fillStyle = CARD.ink;
+  ctx.font = `italic 600 20px ${CARD.serif}`;
+  ctx.fillText(truncateText(ctx, `Dear ${guestName},`, width - 120), centerX, curY);
   ctx.restore();
 
   curY += 26;
 
-  // Guest Greeting: Dear <name>,
-  const guestName = guest?.name || 'Guest';
+  // 9. Warm invitation note
   ctx.save();
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#1E293B';
-  ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText(`Dear ${guestName},`, centerX, curY);
+  ctx.fillStyle = CARD.muted;
+  ctx.font = `13px ${CARD.sans}`;
+  ctx.fillText('You are warmly invited to celebrate with us', centerX, curY);
+  curY += 19;
+  ctx.fillText('on this special day.', centerX, curY);
   ctx.restore();
 
-  curY += 22;
+  curY += 26 + gap;
 
-  // Warm invitation note
+  // 10. Date and venue, between two ornaments
+  drawOrnament(ctx, centerX, curY, 110);
+
+  curY += 32;
+
+  const dateFormatted = formatInviteDate(event?.date) || 'Date to be announced';
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#64748B';
-  ctx.font = 'italic 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText('You are warmly invited to celebrate with us on this special day.', centerX, curY);
+  ctx.fillStyle = CARD.ink;
+  ctx.textAlign = 'left';
+
+  // the icon and the text are centred together as one group
+  ctx.font = `600 15px ${CARD.sans}`;
+  const dateWidth = ctx.measureText ? ctx.measureText(dateFormatted).width : 200;
+  const dateX = centerX - (dateWidth + 26) / 2;
+  drawCalendarIcon(ctx, dateX, curY - 14, 16, CARD.rose);
+  ctx.fillText(dateFormatted, dateX + 26, curY);
+
+  if (hasVenue) {
+    curY += 30;
+    ctx.font = `14px ${CARD.sans}`;
+    const venueText = truncateText(ctx, event.venue, width - 170);
+    const venueWidth = ctx.measureText ? ctx.measureText(venueText).width : 200;
+    const venueX = centerX - (venueWidth + 26) / 2;
+    drawLandmarkIcon(ctx, venueX, curY - 14, 16, CARD.rose);
+    ctx.fillText(venueText, venueX + 26, curY);
+  }
   ctx.restore();
 
   curY += 24;
 
-  // Details Box (Date & Venue)
-  const detailsBoxX = innerX + 20;
-  const detailsBoxW = innerW - 40;
-  const detailsBoxH = hasVenue ? 78 : 46;
+  drawOrnament(ctx, centerX, curY, 110);
 
-  ctx.save();
-  ctx.fillStyle = '#FFFFFF';
-  drawRoundedRect(ctx, detailsBoxX, curY, detailsBoxW, detailsBoxH, 10);
-  ctx.fill();
-  ctx.strokeStyle = '#F3D7DC';
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  curY += 38 + gap;
 
-  // Date Item
-  const dateFormatted = formatInviteDate(event?.date) || 'Date to be announced';
-  drawCalendarIcon(ctx, detailsBoxX + 14, curY + 13, 16, '#C93F59');
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#1E293B';
-  ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText(dateFormatted, detailsBoxX + 38, curY + 26);
-
-  // Venue Item (if present)
-  if (hasVenue) {
-    drawLandmarkIcon(ctx, detailsBoxX + 14, curY + 45, 16, '#C93F59');
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#1E293B';
-    ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    const venueText = truncateText(ctx, event.venue, detailsBoxW - 50);
-    ctx.fillText(venueText, detailsBoxX + 38, curY + 58);
-  }
-  ctx.restore();
-
-  curY += detailsBoxH + 28;
-
-  // Sign-off / Host
+  // 11. Sign-off and host name
   ctx.save();
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#64748B';
-  ctx.font = '13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = CARD.muted;
+  ctx.font = `italic 14px ${CARD.serif}`;
   ctx.fillText('With love,', centerX, curY);
 
-  curY += 18;
-  ctx.fillStyle = '#1E293B';
-  ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText(hostName || 'The Host', centerX, curY);
+  curY += 28;
+  ctx.fillStyle = CARD.maroon;
+  ctx.font = `bold 22px ${CARD.serif}`;
+  ctx.fillText(truncateText(ctx, hostName || 'The Host', width - 140), centerX, curY);
   ctx.restore();
 
   return canvas;

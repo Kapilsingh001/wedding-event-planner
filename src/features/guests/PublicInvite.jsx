@@ -132,7 +132,7 @@ export default function PublicInvite() {
         <div className="public-invite-card-wrapper error-state">
           <h2>Invitation Not Found</h2>
           <p className="ui-muted">{error || 'This invitation link may have expired or is invalid.'}</p>
-          <Link to="/" className="btn btn-outline" style={{ marginTop: 16 }}>
+          <Link to="/" className="btn btn-ghost" style={{ marginTop: 16 }}>
             Back to Home
           </Link>
         </div>
@@ -185,7 +185,7 @@ export default function PublicInvite() {
           <div className="public-rsvp-buttons">
             <button
               type="button"
-              className={`btn ${rsvpStatus === 'Attending' ? 'btn-rsvp-active' : 'btn-outline'}`}
+              className={`btn ${rsvpStatus === 'Attending' ? 'btn-rsvp-active' : 'btn-ghost'}`}
               onClick={() => handleRsvpChange('Attending')}
               disabled={updatingRsvp}
             >
@@ -194,7 +194,7 @@ export default function PublicInvite() {
             </button>
             <button
               type="button"
-              className={`btn ${rsvpStatus === 'Declined' ? 'btn-rsvp-declined' : 'btn-outline'}`}
+              className={`btn ${rsvpStatus === 'Declined' ? 'btn-rsvp-declined' : 'btn-ghost'}`}
               onClick={() => handleRsvpChange('Declined')}
               disabled={updatingRsvp}
             >
@@ -203,7 +203,7 @@ export default function PublicInvite() {
             </button>
             <button
               type="button"
-              className={`btn ${rsvpStatus === 'Tentative' ? 'btn-rsvp-tentative' : 'btn-outline'}`}
+              className={`btn ${rsvpStatus === 'Tentative' ? 'btn-rsvp-tentative' : 'btn-ghost'}`}
               onClick={() => handleRsvpChange('Tentative')}
               disabled={updatingRsvp}
             >

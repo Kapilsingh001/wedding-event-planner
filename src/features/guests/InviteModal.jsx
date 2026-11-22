@@ -310,9 +310,9 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
               <div
                 className={`guests-invite-notice ui-alert ${
                   statusNotice.type === 'error'
-                    ? 'ui-alert-danger'
+                    ? 'ui-alert-error'
                     : statusNotice.type === 'info'
-                    ? 'ui-alert-info'
+                    ? 'ui-alert-success'
                     : 'ui-alert-success'
                 }`}
                 role="status"
@@ -362,7 +362,7 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
                   )}
                   <button
                     type="button"
-                    className="btn btn-outline btn-sm"
+                    className="btn btn-ghost btn-sm"
                     onClick={handleDownloadCard}
                   >
                     <Icon name="download" size={14} />
@@ -404,7 +404,7 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
 
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-ghost"
                 onClick={handleDownloadCard}
                 disabled={downloading}
                 title="Download high-resolution card PNG image"
@@ -415,7 +415,7 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
 
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-ghost"
                 onClick={handleCopyCardImage}
                 disabled={copyingImage}
                 title="Copy card image to clipboard to paste directly in WhatsApp"
