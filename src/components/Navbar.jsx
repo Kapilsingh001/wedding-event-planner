@@ -56,6 +56,7 @@ function Navbar() {
             <NavLink to="/" end>{user ? 'Dashboard' : 'Home'}</NavLink>
             <NavLink to="/vendors">Vendors</NavLink>
             <NavLink to="/events">Events</NavLink>
+            <NavLink to="/timeline">Timeline</NavLink>
             <NavLink to="/guests">Guests</NavLink>
             <NavLink to="/tasks">Tasks</NavLink>
           </nav>

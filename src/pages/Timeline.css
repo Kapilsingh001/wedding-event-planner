@@ -1,0 +1,299 @@
+/* ---------- summary strip ---------- */
+
+.tl-summary {
+  display: grid;
+  grid-template-columns: repeat(3, auto) 1fr;
+  align-items: center;
+  gap: 28px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.tl-summary div {
+  display: flex;
+  flex-direction: column;
+}
+
+.tl-summary strong {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.tl-summary span {
+  font-size: 13px;
+  color: var(--text-gray);
+}
+
+.tl-summary-next {
+  padding-left: 28px;
+  border-left: 1px solid var(--border);
+}
+
+.tl-summary-next strong {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: var(--pink-dark);
+}
+
+.tl-none {
+  padding: 20px 0;
+}
+
+/* ---------- the timeline: date | dot on a line | card ---------- */
+
+.tl,
+.tl ol {
+  list-style: none;
+}
+
+.tl {
+  margin-top: 24px;
+}
+
+.tl-month {
+  margin: 24px 0 14px 88px;
+  font-size: 20px;
+  color: var(--pink-dark);
+}
+
+.tl-group:first-child .tl-month {
+  margin-top: 0;
+}
+
+.tl-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 56px 32px 1fr;
+  gap: 0;
+  padding-bottom: 18px;
+}
+
+/* the vertical line runs behind the dots */
+.tl-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 71px;
+  width: 2px;
+  background: var(--soft);
+}
+
+.tl-group:last-child .tl-item:last-child::before {
+  bottom: auto;
+  height: 28px;
+}
+
+.tl-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
+}
+
+.tl-date strong {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.tl-date span {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-gray);
+}
+
+.tl-dot {
+  position: relative;
+  z-index: 1;
+  width: 16px;
+  height: 16px;
+  margin: 16px auto 0;
+  background: var(--surface);
+  border: 3px solid var(--pink-dark);
+  border-radius: 50%;
+}
+
+.tl-today .tl-dot {
+  background: var(--pink-dark);
+  box-shadow: 0 0 0 0 var(--pink-dark);
+  animation: tl-pulse 1.6s infinite;
+}
+
+.tl-past .tl-dot {
+  background: var(--soft);
+  border-color: var(--soft);
+}
+
+.tl-card {
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tl-card:hover {
+  transform: translateX(3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.tl-today .tl-card {
+  border-color: var(--pink-dark);
+}
+
+/* ceremonies that are over are faded */
+.tl-past .tl-card,
+.tl-past .tl-date {
+  opacity: 0.6;
+}
+
+.tl-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.tl-when {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pink-dark);
+}
+
+.tl-past .tl-when {
+  color: var(--text-gray);
+}
+
+.tl-card h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 21px;
+  line-height: 1.25;
+}
+
+.tl-venue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--text-gray);
+}
+
+.tl-budget {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-gray);
+}
+
+.tl-budget span {
+  white-space: nowrap;
+}
+
+.tl-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--pink-light);
+  overflow: hidden;
+}
+
+.tl-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--pink-dark);
+}
+
+.tl-bar-fill.over {
+  background: #C0392B;
+}
+
+/* ---------- one colour per ceremony type ---------- */
+
+.tl-type {
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  color: #6B6164;
+  background: #F1ECEB;
+}
+
+.tl-type-wedding { color: #B0344C; background: #FFE3E9; }
+.tl-type-haldi { color: #8A6400; background: #FFF1C2; }
+.tl-type-mehendi { color: #2A7F62; background: #E1F5EC; }
+.tl-type-sangeet { color: #5F57A0; background: #ECE9F7; }
+.tl-type-engagement { color: #B4632A; background: #FBEADD; }
+.tl-type-reception { color: #2B6CB0; background: #E3EEFB; }
+
+[data-theme='dark'] .tl-type { color: #C9BFC2; background: #2E2729; }
+[data-theme='dark'] .tl-type-wedding { color: #FF9DB0; background: #3A2129; }
+[data-theme='dark'] .tl-type-haldi { color: #F2D27A; background: #3A3118; }
+[data-theme='dark'] .tl-type-mehendi { color: #6FD3A8; background: #1C3329; }
+[data-theme='dark'] .tl-type-sangeet { color: #B7AEF0; background: #2A2740; }
+[data-theme='dark'] .tl-type-engagement { color: #F4B183; background: #3A2A1F; }
+[data-theme='dark'] .tl-type-reception { color: #8DBBF0; background: #1E2C3D; }
+
+@keyframes tl-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(201, 63, 89, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(201, 63, 89, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(201, 63, 89, 0);
+  }
+}
+
+@media (max-width: 700px) {
+  .tl-summary {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .tl-summary-next {
+    grid-column: 1 / -1;
+    padding: 12px 0 0;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .tl-month {
+    margin-left: 64px;
+  }
+
+  .tl-item {
+    grid-template-columns: 40px 24px 1fr;
+  }
+
+  .tl-item::before {
+    left: 51px;
+  }
+
+  .tl-date strong {
+    font-size: 21px;
+  }
+
+  .tl-budget {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .tl-bar {
+    flex: none;
+  }
+}
