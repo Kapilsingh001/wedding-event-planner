@@ -18,6 +18,8 @@ const RSVP_OPTIONS = [
   { value: 'Pending', label: 'Pending' },
   { value: 'Attending', label: 'Attending' },
   { value: 'Declined', label: 'Declined' },
+  // a guest can answer "Maybe" on the invitation page, saved as Tentative
+  { value: 'Tentative', label: 'Maybe' },
 ];
 const FILTER_OPTIONS = [{ value: 'All', label: 'All RSVPs' }, ...RSVP_OPTIONS];
 
@@ -57,9 +59,12 @@ export default function Guests() {
   useEffect(() => {
     let isMounted = true;
 
-    async function loadGuests() {
-      setLoading(true);
-      setFetchError('');
+    // quiet = true loads the list again without showing "Loading..."
+    async function loadGuests(quiet = false) {
+      if (!quiet) {
+        setLoading(true);
+        setFetchError('');
+      }
       try {
         const { data } = await api.get('/guests');
         if (isMounted) {
@@ -67,7 +72,7 @@ export default function Guests() {
           setGuests(userGuests);
         }
       } catch {
-        if (isMounted) {
+        if (isMounted && !quiet) {
           setFetchError('Could not load guests. Is JSON Server running on port 3001?');
         }
       } finally {
@@ -79,8 +84,14 @@ export default function Guests() {
 
     loadGuests();
 
+    // When the host comes back to this tab, load the list again quietly. So an
+    // answer a guest just sent from the invitation link shows without a refresh.
+    const reloadQuietly = () => loadGuests(true);
+    window.addEventListener('focus', reloadQuietly);
+
     return () => {
       isMounted = false;
+      window.removeEventListener('focus', reloadQuietly);
     };
   }, [user?.id]);
 
@@ -376,6 +387,12 @@ export default function Guests() {
                         onChange={(value) => handleRsvpChange(guest.id, value)}
                         options={RSVP_OPTIONS}
                       />
+                      {/* the message a guest wrote when they chose "Cannot Attend" */}
+                      {guest.rsvp === 'Declined' && guest.rsvpNote && (
+                        <p className="guests-rsvp-note">
+                          <span>Message:</span> {guest.rsvpNote}
+                        </p>
+                      )}
                     </td>
                     <td className="guests-actions-col">
                       <div className="guests-row-actions">

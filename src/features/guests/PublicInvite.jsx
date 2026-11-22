@@ -4,6 +4,7 @@ import api from '../../services/api';
 import Icon from '../../components/Icons.jsx';
 import { formatInviteDate } from './inviteUtils.js';
 import { downloadInviteCard } from './cardGenerator.js';
+import { cleanRsvpNote, RSVP_NOTE_MAX } from './guestUtils.js';
 import './PublicInvite.css';
 
 export default function PublicInvite() {
@@ -20,6 +21,10 @@ export default function PublicInvite() {
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
   const [rsvpSaved, setRsvpSaved] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  // the short message a guest can write when they cannot attend
+  const [note, setNote] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
+  const [noteSaved, setNoteSaved] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -40,6 +45,7 @@ export default function PublicInvite() {
 
         setGuest(guestData);
         setRsvpStatus(guestData.rsvp || 'Pending');
+        setNote(guestData.rsvpNote || '');
 
         // 2. Fetch User/Host and Events
         const userId = guestData.userId;
@@ -97,8 +103,15 @@ export default function PublicInvite() {
     if (!guest || updatingRsvp) return;
     setUpdatingRsvp(true);
     try {
-      await api.patch(`/guests/${guest.id}`, { rsvp: newRsvp });
+      // The message is a reason for not coming. So when the guest picks
+      // another answer, the old message is removed.
+      const changes = newRsvp === 'Declined' ? { rsvp: newRsvp } : { rsvp: newRsvp, rsvpNote: '' };
+      await api.patch(`/guests/${guest.id}`, changes);
       setRsvpStatus(newRsvp);
+      if (newRsvp !== 'Declined') {
+        setNote('');
+      }
+      setNoteSaved(false);
       setRsvpSaved(true);
       setTimeout(() => setRsvpSaved(false), 3500);
     } catch (err) {
@@ -106,6 +119,25 @@ export default function PublicInvite() {
       alert('Could not update your RSVP. Please try again.');
     } finally {
       setUpdatingRsvp(false);
+    }
+  };
+
+  // Save the short message of a guest who cannot attend.
+  // The host sees it in the guest list, under the Declined status.
+  const handleNoteSave = async (e) => {
+    e.preventDefault();
+    if (!guest || savingNote) return;
+    setSavingNote(true);
+    try {
+      const cleaned = cleanRsvpNote(note);
+      await api.patch(`/guests/${guest.id}`, { rsvpNote: cleaned });
+      setNote(cleaned);
+      setNoteSaved(true);
+    } catch (err) {
+      console.error('Failed to save the message', err);
+      alert('Could not send your message. Please try again.');
+    } finally {
+      setSavingNote(false);
     }
   };
 
@@ -221,6 +253,38 @@ export default function PublicInvite() {
             <div className="ui-alert ui-alert-success public-rsvp-alert">
               Thank you! Your RSVP status (<strong>{rsvpStatus}</strong>) has been recorded.
             </div>
+          )}
+
+          {/* A guest who cannot attend can tell the host why. It is optional. */}
+          {rsvpStatus === 'Declined' && (
+            <form className="public-rsvp-note" onSubmit={handleNoteSave}>
+              <label htmlFor="rsvp-note">Would you like to tell the host why? (optional)</label>
+              <textarea
+                id="rsvp-note"
+                className="ui-input public-rsvp-note-box"
+                rows={3}
+                maxLength={RSVP_NOTE_MAX}
+                placeholder="Write a short message for the host"
+                value={note}
+                onChange={(e) => {
+                  setNote(e.target.value);
+                  setNoteSaved(false);
+                }}
+              />
+              <div className="public-rsvp-note-row">
+                <span className="public-rsvp-note-count">
+                  {note.length}/{RSVP_NOTE_MAX}
+                </span>
+                <button type="submit" className="btn btn-sm" disabled={savingNote || !note.trim()}>
+                  {savingNote ? 'Sending...' : 'Send Message'}
+                </button>
+              </div>
+              {noteSaved && (
+                <div className="ui-alert ui-alert-success public-rsvp-alert" role="status">
+                  Your message has been sent to the host.
+                </div>
+              )}
+            </form>
           )}
 
           <div className="public-invite-actions">
