@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  summarizeBudget, summarizeGuests, summarizeTasks, getNextEvent, daysUntil, getUpcomingEvents, getSetupSteps,
+  summarizeBudget, summarizeGuests, summarizeTasks, getNextEvent, daysUntil, getUpcomingEvents, getSetupSteps, getNextStep,
 } from './dashboardUtils'
 
 const events = [
@@ -80,5 +80,22 @@ describe('getSetupSteps', () => {
   it('marks a step done only when the user has that data', () => {
     const steps = getSetupSteps({ events: [{}], guests: [], tasks: [{}], shortlisted: [] })
     expect(steps.map((step) => step.done)).toEqual([true, false, true, false])
+  })
+})
+
+describe('getNextStep', () => {
+  it('gives the first step that is not done yet', () => {
+    const steps = getSetupSteps({ events: [{}], guests: [], tasks: [{}], shortlisted: [] })
+    expect(getNextStep(steps).key).toBe('guests')
+  })
+
+  it('gives the first step for a new user', () => {
+    const steps = getSetupSteps({ events: [], guests: [], tasks: [], shortlisted: [] })
+    expect(getNextStep(steps).key).toBe('event')
+  })
+
+  it('gives null when every step is done', () => {
+    const steps = getSetupSteps({ events: [{}], guests: [{}], tasks: [{}], shortlisted: [{}] })
+    expect(getNextStep(steps)).toBeNull()
   })
 })

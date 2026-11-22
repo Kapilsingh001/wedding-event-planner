@@ -58,3 +58,9 @@ export function getSetupSteps({ events, guests, tasks, shortlisted }) {
     { key: 'vendors', title: 'Shortlist vendors', text: 'Save the ones you like.', to: '/vendors', done: shortlisted.length > 0 },
   ]
 }
+
+// The first setup step that is not done yet, or null when all of them are done.
+// The dashboard shows it as the one thing to do next.
+export function getNextStep(steps) {
+  return steps.find((step) => !step.done) || null
+}
