@@ -1,7 +1,10 @@
 /* ── Auth Page Wrapper ─────────────────────────────── */
 .auth-page {
-  height: calc(100vh - 78px);
-  min-height: calc(100vh - 78px);
+  flex: 1;
+  width: 100%;
+  height: calc(100vh - 61px);
+  min-height: calc(100vh - 61px);
+  max-height: calc(100vh - 61px);
   overflow: hidden;
   display: flex;
   justify-content: center;

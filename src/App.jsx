@@ -44,15 +44,26 @@ function Pages() {
   )
 }
 
-function App(){
-  return(
-    <BrowserRouter>
+function Layout() {
+  const location = useLocation()
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register'
+
+  return (
+    <div className={`app-layout ${isAuthPage ? 'auth-active' : ''}`}>
       <a href="#main" className="skip-link">Skip to main content</a>
       <Navbar />
       <main id="main">
         <Pages />
       </main>
-      <Footer />
+      {!isAuthPage && <Footer />}
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Layout />
     </BrowserRouter>
   )
 }
