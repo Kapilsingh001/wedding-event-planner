@@ -1,4 +1,9 @@
-import { formatInviteDate, buildInviteMessage, buildWhatsAppLink } from './inviteUtils.js';
+import {
+  formatInviteDate,
+  buildInviteMessage,
+  buildWhatsAppLink,
+  buildWhatsAppWebLink,
+} from './inviteUtils.js';
 
 /**
  * Fallback-safe rounded rectangle helper
@@ -446,12 +451,15 @@ export async function downloadInviteCard({ guest, event, hostName }) {
 }
 
 /**
- * Copy the card image directly to system clipboard
+ * Copy the card image to the system clipboard.
+ * The image is given to the clipboard as a promise, so the copy starts inside
+ * the click itself. Browsers only allow a copy that a click started.
  */
 export async function copyInviteCardToClipboard({ guest, event, hostName }) {
-  const blob = await generateInviteCardBlob({ guest, event, hostName });
   if (typeof navigator !== 'undefined' && navigator.clipboard && typeof window !== 'undefined' && window.ClipboardItem) {
-    const item = new window.ClipboardItem({ 'image/png': blob });
+    const item = new window.ClipboardItem({
+      'image/png': generateInviteCardBlob({ guest, event, hostName }),
+    });
     await navigator.clipboard.write([item]);
     return { success: true, method: 'clipboard' };
   }
@@ -460,80 +468,79 @@ export async function copyInviteCardToClipboard({ guest, event, hostName }) {
 }
 
 /**
- * Share card on WhatsApp:
- * 1. Native file share via navigator.share (mobile / supported desktop OS)
- * 2. Fallback: Copies card image to clipboard, downloads image, and opens WhatsApp Web
+ * True on a phone. A phone can attach the card image to WhatsApp by itself.
+ * A laptop cannot, so the two are handled differently.
+ */
+export function isMobileDevice() {
+  if (typeof navigator === 'undefined') return false;
+  if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
+    return navigator.userAgentData.mobile;
+  }
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+}
+
+/**
+ * Share the card on WhatsApp.
+ *
+ * Phone:  the share menu attaches the real image file, so the card itself is sent.
+ *
+ * Laptop: WhatsApp Web takes only TEXT from a link, never an image. So the card
+ *         image is copied to the clipboard and the user pastes it in the chat
+ *         with Ctrl+V. This function does not open WhatsApp. It returns the
+ *         address as waUrl, and the pop-up opens it after showing the steps.
+ *
+ * A laptop must not use navigator.share. On Windows it opens the Windows share
+ * box instead of WhatsApp Web, and then the card is never copied.
  */
 export async function shareInviteCardOnWhatsApp({ guest, event, hostName, inviteUrl = '' }) {
-  const canvas = generateInviteCardCanvas({ guest, event, hostName });
   const message = buildInviteMessage(guest, event, hostName, inviteUrl);
-  const waUrl = buildWhatsAppLink(guest?.phone, message);
-  const safeName = (guest?.name || 'Guest').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+  const onPhone = isMobileDevice();
 
-  // Try Web Share API with image file first (ideal on phones and supported OS)
-  if (
-    typeof navigator !== 'undefined' &&
-    typeof navigator.share === 'function' &&
-    typeof navigator.canShare === 'function'
-  ) {
+  if (onPhone && typeof navigator.share === 'function' && typeof navigator.canShare === 'function') {
     try {
-      const blob = await new Promise((resolve) => {
-        if (canvas.toBlob) canvas.toBlob(resolve, 'image/png');
-        else resolve(null);
-      });
+      const blob = await generateInviteCardBlob({ guest, event, hostName });
+      const safeName = (guest?.name || 'Guest').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+      const file = new File([blob], `invitation-${safeName}.png`, { type: 'image/png' });
 
-      if (blob && typeof File !== 'undefined') {
-        const file = new File([blob], `invitation-${safeName}.png`, { type: 'image/png' });
-
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: `${event?.title || 'Wedding Invitation'} for ${guest?.name || 'Guest'}`,
-            text: message,
-            files: [file],
-          });
-          return { shared: true, method: 'native-share' };
+      if (navigator.canShare({ files: [file] })) {
+        const shareData = { files: [file] };
+        // Android puts the text under the image as a caption. On an iPhone,
+        // text sent together with a file can make WhatsApp drop the image,
+        // so there the image goes alone.
+        if (!/iPhone|iPad|iPod/i.test(navigator.userAgent || '')) {
+          shareData.text = message;
         }
+        await navigator.share(shareData);
+        return { shared: true, method: 'native-share' };
       }
     } catch (err) {
       if (err.name === 'AbortError') {
         return { shared: false, cancelled: true };
       }
-      console.warn('Native file share failed or not accepted, falling back', err);
+      console.warn('Sharing the image file failed, using copy and paste instead', err);
     }
   }
 
-  // Fallback for desktop & browsers without direct file share to WhatsApp:
-  // 1. Copy image to clipboard so user can press Ctrl+V in WhatsApp chat
+  // Copy the card. If the browser blocks the clipboard, download the card
+  // instead, so the user can drag the file into the chat.
   let copiedToClipboard = false;
+  let downloaded = false;
   try {
-    const blob = await new Promise((resolve) => {
-      if (canvas.toBlob) canvas.toBlob(resolve, 'image/png');
-      else resolve(null);
-    });
-    if (blob && typeof navigator !== 'undefined' && navigator.clipboard && window?.ClipboardItem) {
-      await navigator.clipboard.write([new window.ClipboardItem({ 'image/png': blob })]);
-      copiedToClipboard = true;
-    }
+    const result = await copyInviteCardToClipboard({ guest, event, hostName });
+    copiedToClipboard = result.method === 'clipboard';
+    downloaded = result.method === 'download';
   } catch (clipErr) {
-    console.warn('Clipboard write failed, downloading card as fallback', clipErr);
-  }
-
-  // 2. Also trigger image download so the file is ready in user's downloads folder
-  try {
-    await downloadInviteCard({ guest, event, hostName });
-  } catch {
-    // ignore
-  }
-
-  // 3. Open WhatsApp Web
-  if (typeof window !== 'undefined') {
-    window.open(waUrl, '_blank', 'noopener');
+    console.warn('Clipboard write failed, downloading the card instead', clipErr);
+    downloaded = await downloadInviteCard({ guest, event, hostName });
   }
 
   return {
-    shared: true,
+    shared: false,
     method: 'whatsapp-web',
     copiedToClipboard,
-    waUrl,
+    downloaded,
+    waUrl: onPhone
+      ? buildWhatsAppLink(guest?.phone, message)
+      : buildWhatsAppWebLink(guest?.phone, message),
   };
 }

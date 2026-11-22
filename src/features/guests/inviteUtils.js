@@ -37,11 +37,30 @@ With love,
 ${sender}`;
 }
 
-export function buildWhatsAppLink(phone, message = '') {
+// The phone number as 10 digits, or '' when it is not a 10-digit number
+function getTenDigitPhone(phone) {
   const trimmed = typeof phone === 'string' ? phone.trim() : (phone != null ? String(phone) : '');
+  return /^\d{10}$/.test(trimmed) ? trimmed : '';
+}
+
+// Link for a phone: opens the WhatsApp app with the message typed in
+export function buildWhatsAppLink(phone, message = '') {
+  const digits = getTenDigitPhone(phone);
   const encodedMsg = encodeURIComponent(message);
-  if (/^\d{10}$/.test(trimmed)) {
-    return `https://wa.me/91${trimmed}?text=${encodedMsg}`;
+  if (digits) {
+    return `https://wa.me/91${digits}?text=${encodedMsg}`;
   }
   return `https://wa.me/?text=${encodedMsg}`;
+}
+
+// Link for a laptop: opens WhatsApp Web straight in the guest's chat, with the
+// message typed in. A link can carry only text. WhatsApp never takes an image
+// from a link, which is why the card image is pasted into the chat instead.
+export function buildWhatsAppWebLink(phone, message = '') {
+  const digits = getTenDigitPhone(phone);
+  const encodedMsg = encodeURIComponent(message);
+  if (digits) {
+    return `https://web.whatsapp.com/send?phone=91${digits}&text=${encodedMsg}`;
+  }
+  return `https://web.whatsapp.com/send?text=${encodedMsg}`;
 }

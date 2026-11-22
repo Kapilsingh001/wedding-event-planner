@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import Icon from '../../components/Icons.jsx';
 import { formatInviteDate } from './inviteUtils.js';
@@ -8,6 +8,9 @@ import './PublicInvite.css';
 
 export default function PublicInvite() {
   const { id: guestId } = useParams();
+  // the event the host chose, sent in the link as ?event=<id>
+  const [searchParams] = useSearchParams();
+  const eventId = searchParams.get('event');
   const [guest, setGuest] = useState(null);
   const [event, setEvent] = useState(null);
   const [hostName, setHostName] = useState('The Host');
@@ -52,12 +55,14 @@ export default function PublicInvite() {
             (e) => String(e.userId) === String(userId)
           );
           if (userEvents.length > 0) {
-            // Find soonest upcoming event or latest
+            // The event named in the link. An old link has none, so then
+            // the soonest upcoming event, or else the first one.
+            const chosen = userEvents.find((e) => String(e.id) === String(eventId));
             const today = new Date().toISOString().slice(0, 10);
             const upcoming = [...userEvents]
               .filter((e) => e.date >= today)
               .sort((a, b) => a.date.localeCompare(b.date));
-            setEvent(upcoming[0] || userEvents[0]);
+            setEvent(chosen || upcoming[0] || userEvents[0]);
           }
         }
 
@@ -86,7 +91,7 @@ export default function PublicInvite() {
     return () => {
       isMounted = false;
     };
-  }, [guestId]);
+  }, [guestId, eventId]);
 
   const handleRsvpChange = async (newRsvp) => {
     if (!guest || updatingRsvp) return;

@@ -826,3 +826,45 @@
     overflow: visible;
   }
 }
+
+/* The main action gets a row of its own, so its label stays on one line */
+.guests-invite-modal-actions .btn-whatsapp {
+  flex: 1 1 100%;
+}
+
+/* ---------- dark mode: the "send it in 2 steps" box ---------- */
+
+[data-theme='dark'] .guests-guide-card {
+  background: #14261C;
+  border-color: #2A6B45;
+}
+
+[data-theme='dark'] .guests-guide-header svg {
+  color: #4ADE80;
+}
+
+[data-theme='dark'] .guests-guide-header h4,
+[data-theme='dark'] .guests-guide-step strong {
+  color: #C8F5D8;
+}
+
+[data-theme='dark'] .guests-guide-header p,
+[data-theme='dark'] .guests-guide-step p {
+  color: #9AD8B2;
+}
+
+[data-theme='dark'] .guests-guide-step {
+  background: #1B1F1D;
+  border-color: #264D36;
+}
+
+[data-theme='dark'] .guests-guide-step.highlight {
+  background: #1D3A29;
+  border-color: #2F7A4C;
+}
+
+[data-theme='dark'] .guests-guide-step kbd {
+  background: #101713;
+  border-color: #2F7A4C;
+  color: #C8F5D8;
+}

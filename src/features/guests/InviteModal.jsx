@@ -21,8 +21,9 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
   const [imageCopied, setImageCopied] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
   const [statusNotice, setStatusNotice] = useState(null);
-  const [showDesktopGuide, setShowDesktopGuide] = useState(false);
-  const [whatsAppChatUrl, setWhatsAppChatUrl] = useState('');
+  // Laptop only: { waUrl, copied }. While it is set, the two steps to paste the
+  // card into WhatsApp Web are shown instead of the card preview.
+  const [desktopShare, setDesktopShare] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -73,9 +74,17 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
     label: `${e.title} (${e.type || 'Event'}) - ${e.date}`,
   }));
 
+  // The link carries the chosen event, so the guest's page shows the same
+  // event as the card.
   const inviteUrl = typeof window !== 'undefined' && guest?.id
-    ? `${window.location.origin}/invite/${guest.id}`
+    ? `${window.location.origin}/invite/${guest.id}${selectedEvent ? `?event=${selectedEvent.id}` : ''}`
     : '';
+
+  // A different event means a different card, so a card copied earlier is wrong now
+  const handleEventChange = (eventId) => {
+    setSelectedEventId(eventId);
+    setDesktopShare(null);
+  };
 
   // Mark guest as invited in backend
   const markGuestAsInvited = async () => {
@@ -90,11 +99,15 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
     }
   };
 
-  // Share Card on WhatsApp
+  // Share Card on WhatsApp.
+  // Phone:  the share menu attaches the card image itself.
+  // Laptop: WhatsApp Web takes only text from a link, so the card is copied here
+  //         and the steps to paste it are shown BEFORE WhatsApp opens.
   const handleWhatsAppShare = async () => {
     if (!selectedEvent || !guest) return;
     setSharing(true);
     setStatusNotice(null);
+    setDesktopShare(null);
 
     try {
       const result = await shareInviteCardOnWhatsApp({
@@ -105,24 +118,19 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
       });
 
       if (result.cancelled) {
-        setSharing(false);
         return;
       }
 
-      await markGuestAsInvited();
-
       if (result.method === 'native-share') {
+        await markGuestAsInvited();
         setStatusNotice({
           type: 'success',
           text: 'Invitation card shared successfully!',
         });
-      } else {
-        // Desktop WhatsApp Web workflow
-        if (result.waUrl) {
-          setWhatsAppChatUrl(result.waUrl);
-        }
-        setShowDesktopGuide(true);
+        return;
       }
+
+      setDesktopShare({ waUrl: result.waUrl, copied: result.copiedToClipboard });
     } catch (err) {
       console.error('Error sharing invitation card on WhatsApp', err);
       setStatusNotice({
@@ -132,6 +140,14 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
     } finally {
       setSharing(false);
     }
+  };
+
+  // Laptop, step 1: open the guest's chat in WhatsApp Web.
+  // It runs straight from the click, so the browser does not block the new tab.
+  const handleOpenWhatsApp = () => {
+    if (!desktopShare?.waUrl) return;
+    window.open(desktopShare.waUrl, '_blank', 'noopener');
+    markGuestAsInvited();
   };
 
   // Download Card as PNG
@@ -206,6 +222,8 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
     try {
       await navigator.clipboard.writeText(message);
       setCopiedText(true);
+      // the clipboard now holds the text, so the card copied earlier is gone
+      setDesktopShare(null);
       setStatusNotice({
         type: 'info',
         text: 'Invitation text message copied to clipboard.',
@@ -263,12 +281,12 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
               <Dropdown
                 id="invite-event-picker"
                 value={selectedEventId}
-                onChange={setSelectedEventId}
+                onChange={handleEventChange}
                 options={eventOptions}
               />
             </div>
 
-            {selectedEvent && (
+            {selectedEvent && !desktopShare && (
               <div className="guests-invite-card" id="guests-invite-card-preview">
                 <div className="guests-invite-card-inner">
                   <span className="guests-invite-eyebrow">YOU ARE INVITED</span>
@@ -309,11 +327,7 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
             {statusNotice && (
               <div
                 className={`guests-invite-notice ui-alert ${
-                  statusNotice.type === 'error'
-                    ? 'ui-alert-error'
-                    : statusNotice.type === 'info'
-                    ? 'ui-alert-success'
-                    : 'ui-alert-success'
+                  statusNotice.type === 'error' ? 'ui-alert-error' : 'ui-alert-success'
                 }`}
                 role="status"
               >
@@ -321,14 +335,20 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
               </div>
             )}
 
-            {/* Desktop Step-by-Step Guide Overlay when WhatsApp Web is opened */}
-            {showDesktopGuide && (
-              <div className="guests-guide-card">
+            {/* Laptop: the steps to send the card, shown BEFORE WhatsApp opens.
+                A link can put only text into WhatsApp Web, never an image, so
+                the card has to be pasted (or dragged) into the chat. */}
+            {desktopShare && (
+              <div className="guests-guide-card" role="status">
                 <div className="guests-guide-header">
                   <Icon name="whatsapp" size={22} />
                   <div>
-                    <h4>Card Image Ready to Send in WhatsApp!</h4>
-                    <p>WhatsApp Web opened in your browser. Send the card in 2 simple steps:</p>
+                    <h4>
+                      {desktopShare.copied
+                        ? 'Card image copied. Send it in 2 steps:'
+                        : 'Card image downloaded. Send it in 2 steps:'}
+                    </h4>
+                    <p>WhatsApp Web cannot attach an image by itself, so you paste the card in the chat.</p>
                   </div>
                 </div>
 
@@ -336,67 +356,71 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
                   <div className="guests-guide-step">
                     <span className="step-badge">1</span>
                     <div>
-                      <strong>Card image is copied to your clipboard</strong>
-                      <p>And also downloaded to your computer.</p>
+                      <strong>Click Open WhatsApp</strong>
+                      <p>
+                        The chat with {guest?.name} opens with the message already typed.
+                        Do not press Enter yet.
+                      </p>
                     </div>
                   </div>
                   <div className="guests-guide-step highlight">
                     <span className="step-badge">2</span>
                     <div>
-                      <strong>Click the WhatsApp chat and press <kbd>Ctrl</kbd> + <kbd>V</kbd></strong>
-                      <p>The card image will instantly appear in WhatsApp ready to send! (Or drag the downloaded image into the chat).</p>
+                      {desktopShare.copied ? (
+                        <strong>
+                          Press <kbd>Ctrl</kbd> + <kbd>V</kbd> in the chat, then <kbd>Enter</kbd>
+                        </strong>
+                      ) : (
+                        <strong>
+                          Drag the downloaded image into the chat, then press <kbd>Enter</kbd>
+                        </strong>
+                      )}
+                      <p>The card appears, with the message as its caption.</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="guests-guide-actions">
-                  {whatsAppChatUrl && (
-                    <button
-                      type="button"
-                      className="btn btn-whatsapp btn-sm"
-                      onClick={() => window.open(whatsAppChatUrl, '_blank', 'noopener')}
-                    >
-                      <Icon name="whatsapp" size={14} />
-                      Open WhatsApp Again
-                    </button>
-                  )}
                   <button
                     type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={handleDownloadCard}
+                    className="btn btn-whatsapp btn-sm"
+                    onClick={handleOpenWhatsApp}
                   >
-                    <Icon name="download" size={14} />
-                    Download PNG
+                    <Icon name="whatsapp" size={14} />
+                    Open WhatsApp
                   </button>
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"
-                    onClick={() => setShowDesktopGuide(false)}
+                    onClick={() => setDesktopShare(null)}
                   >
-                    Got it!
+                    Back to card
                   </button>
                 </div>
               </div>
             )}
 
-            <div className="guests-invite-tip">
-              <Icon name="sparkles" size={14} />
-              <span>
-                Sends the card image to WhatsApp. On desktop, click <strong>Share Card</strong>, then press <strong>Ctrl+V</strong> in WhatsApp to send the card image!
-              </span>
-            </div>
+            {!desktopShare && (
+              <div className="guests-invite-tip">
+                <Icon name="sparkles" size={14} />
+                <span>
+                  On a phone the card image is attached automatically. On a laptop it is copied,
+                  and you paste it in the WhatsApp chat with <strong>Ctrl+V</strong>.
+                </span>
+              </div>
+            )}
           </>
         )}
 
         <div className="ui-modal-actions guests-invite-modal-actions">
-          {events.length > 0 && selectedEvent && (
+          {events.length > 0 && selectedEvent && !desktopShare && (
             <>
               <button
                 type="button"
                 className="btn btn-whatsapp"
                 onClick={handleWhatsAppShare}
                 disabled={sharing}
-                title="Send the invitation card directly on WhatsApp"
+                title="Send the invitation card on WhatsApp"
               >
                 <Icon name="whatsapp" size={18} />
                 <span>{sharing ? 'Preparing card...' : 'Share Card on WhatsApp'}</span>

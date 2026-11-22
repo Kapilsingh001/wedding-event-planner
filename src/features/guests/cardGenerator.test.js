@@ -5,6 +5,7 @@ import {
   downloadInviteCard,
   copyInviteCardToClipboard,
   shareInviteCardOnWhatsApp,
+  isMobileDevice,
 } from './cardGenerator.js';
 
 describe('cardGenerator', () => {
@@ -143,12 +144,24 @@ describe('cardGenerator', () => {
     expect(writeSpy).toHaveBeenCalled();
   });
 
-  it('shareInviteCardOnWhatsApp uses native navigator.share if file sharing is supported', async () => {
-    const shareSpy = vi.fn().mockResolvedValue(undefined);
-    const canShareSpy = vi.fn().mockReturnValue(true);
+  // makes the browser look like an Android phone for one test
+  function pretendPhone() {
+    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
+      'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36'
+    );
+  }
 
+  it('isMobileDevice is false on a laptop and true on a phone', () => {
+    expect(isMobileDevice()).toBe(false);
+    pretendPhone();
+    expect(isMobileDevice()).toBe(true);
+  });
+
+  it('shareInviteCardOnWhatsApp on a phone sends the card image file through the share menu', async () => {
+    pretendPhone();
+    const shareSpy = vi.fn().mockResolvedValue(undefined);
     global.navigator.share = shareSpy;
-    global.navigator.canShare = canShareSpy;
+    global.navigator.canShare = vi.fn().mockReturnValue(true);
 
     const res = await shareInviteCardOnWhatsApp({
       guest: mockGuest,
@@ -158,13 +171,17 @@ describe('cardGenerator', () => {
 
     expect(res.shared).toBe(true);
     expect(res.method).toBe('native-share');
-    expect(shareSpy).toHaveBeenCalled();
+    const shared = shareSpy.mock.calls[0][0];
+    expect(shared.files).toHaveLength(1);
+    expect(shared.files[0].type).toBe('image/png');
   });
 
-  it('shareInviteCardOnWhatsApp falls back to clipboard + WhatsApp window when native share unavailable', async () => {
-    delete global.navigator.share;
-    delete global.navigator.canShare;
-
+  it('shareInviteCardOnWhatsApp on a laptop never uses the share box, it copies the card instead', async () => {
+    // A Windows laptop also has navigator.share. Using it was the bug:
+    // the Windows share box opened and the card was never copied.
+    const shareSpy = vi.fn().mockResolvedValue(undefined);
+    global.navigator.share = shareSpy;
+    global.navigator.canShare = vi.fn().mockReturnValue(true);
     const openSpy = vi.fn();
     window.open = openSpy;
     const writeSpy = vi.fn().mockResolvedValue(undefined);
@@ -179,13 +196,43 @@ describe('cardGenerator', () => {
       hostName: mockHost,
     });
 
-    expect(res.shared).toBe(true);
+    expect(shareSpy).not.toHaveBeenCalled();
+    expect(writeSpy).toHaveBeenCalled();
     expect(res.method).toBe('whatsapp-web');
     expect(res.copiedToClipboard).toBe(true);
-    expect(openSpy).toHaveBeenCalledWith(
-      expect.stringContaining('https://wa.me/919876543210'),
-      '_blank',
-      'noopener'
-    );
+    expect(res.downloaded).toBe(false);
+    // WhatsApp is opened later by the pop-up, after it has shown the steps
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(res.waUrl).toContain('https://web.whatsapp.com/send?phone=919876543210&text=');
+  });
+
+  it('shareInviteCardOnWhatsApp downloads the card when the clipboard is blocked', async () => {
+    delete global.navigator.share;
+    delete global.navigator.canShare;
+    global.navigator.clipboard = { write: vi.fn().mockRejectedValue(new Error('blocked')) };
+    global.window.ClipboardItem = function (items) {
+      return items;
+    };
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const clickSpy = vi.fn();
+    const origCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tag) => {
+      const el = origCreateElement(tag);
+      if (tag === 'a') {
+        el.click = clickSpy;
+      }
+      return el;
+    });
+
+    const res = await shareInviteCardOnWhatsApp({
+      guest: mockGuest,
+      event: mockEvent,
+      hostName: mockHost,
+    });
+
+    expect(res.method).toBe('whatsapp-web');
+    expect(res.copiedToClipboard).toBe(false);
+    expect(res.downloaded).toBe(true);
+    expect(clickSpy).toHaveBeenCalled();
   });
 });
