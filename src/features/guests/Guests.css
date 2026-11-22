@@ -534,6 +534,170 @@
   font-size: 14px;
 }
 
+.guests-invite-notice {
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.guests-invite-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-gray);
+  margin-top: 12px;
+  background: var(--pink-light);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--soft);
+}
+
+.guests-invite-tip svg {
+  color: var(--pink-dark);
+  flex-shrink: 0;
+}
+
+.btn-whatsapp {
+  background-color: #25D366;
+  color: #FFFFFF !important;
+  border: 1px solid #1EBE5D;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-whatsapp:hover:not(:disabled) {
+  background-color: #20BA59;
+  border-color: #1AA850;
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 211, 102, 0.35);
+}
+
+.guests-guide-card {
+  margin-top: 14px;
+  background: #F0FDF4;
+  border: 1.5px solid #86EFAC;
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.guests-guide-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.guests-guide-header svg {
+  color: #16A34A;
+  flex-shrink: 0;
+}
+
+.guests-guide-header h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #14532D;
+  margin: 0;
+}
+
+.guests-guide-header p {
+  font-size: 12.5px;
+  color: #166534;
+  margin: 2px 0 0 0;
+}
+
+.guests-guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guests-guide-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #FFFFFF;
+  border: 1px solid #DCFCE7;
+}
+
+.guests-guide-step.highlight {
+  background: #DCFCE7;
+  border-color: #86EFAC;
+}
+
+.step-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: #16A34A;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.guests-guide-step strong {
+  font-size: 13px;
+  color: #14532D;
+  display: block;
+}
+
+.guests-guide-step p {
+  font-size: 12px;
+  color: #166534;
+  margin: 2px 0 0 0;
+}
+
+.guests-guide-step kbd {
+  background: #FFFFFF;
+  border: 1px solid #86EFAC;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #14532D;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.guests-guide-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.guests-invite-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  margin-top: 18px;
+}
+
+.guests-invite-modal-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 900px) {
   .guests-stats {
@@ -661,4 +825,46 @@
   .guests-table-wrapper {
     overflow: visible;
   }
+}
+
+/* The main action gets a row of its own, so its label stays on one line */
+.guests-invite-modal-actions .btn-whatsapp {
+  flex: 1 1 100%;
+}
+
+/* ---------- dark mode: the "send it in 2 steps" box ---------- */
+
+[data-theme='dark'] .guests-guide-card {
+  background: #14261C;
+  border-color: #2A6B45;
+}
+
+[data-theme='dark'] .guests-guide-header svg {
+  color: #4ADE80;
+}
+
+[data-theme='dark'] .guests-guide-header h4,
+[data-theme='dark'] .guests-guide-step strong {
+  color: #C8F5D8;
+}
+
+[data-theme='dark'] .guests-guide-header p,
+[data-theme='dark'] .guests-guide-step p {
+  color: #9AD8B2;
+}
+
+[data-theme='dark'] .guests-guide-step {
+  background: #1B1F1D;
+  border-color: #264D36;
+}
+
+[data-theme='dark'] .guests-guide-step.highlight {
+  background: #1D3A29;
+  border-color: #2F7A4C;
+}
+
+[data-theme='dark'] .guests-guide-step kbd {
+  background: #101713;
+  border-color: #2F7A4C;
+  color: #C8F5D8;
 }

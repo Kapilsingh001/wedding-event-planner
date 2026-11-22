@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { formatInviteDate, buildInviteMessage, buildWhatsAppLink } from './inviteUtils.js';
+import {
+  formatInviteDate,
+  buildInviteMessage,
+  buildWhatsAppLink,
+  buildWhatsAppWebLink,
+} from './inviteUtils.js';
 
 describe('inviteUtils', () => {
   it('buildInviteMessage contains the guest name, the event title, the venue and the host name', () => {
@@ -32,6 +37,16 @@ describe('inviteUtils', () => {
 
     const shortLink = buildWhatsAppLink('12345', 'Hello World');
     expect(shortLink.startsWith('https://wa.me/?text=')).toBe(true);
+  });
+
+  it('buildWhatsAppWebLink opens WhatsApp Web in the chat of a 10-digit phone', () => {
+    const link = buildWhatsAppWebLink('9876543210', 'Hello World');
+    expect(link).toBe('https://web.whatsapp.com/send?phone=919876543210&text=Hello%20World');
+  });
+
+  it('buildWhatsAppWebLink leaves the phone out when it is missing or not 10 digits', () => {
+    expect(buildWhatsAppWebLink('', 'Hi')).toBe('https://web.whatsapp.com/send?text=Hi');
+    expect(buildWhatsAppWebLink('12345', 'Hi')).toBe('https://web.whatsapp.com/send?text=Hi');
   });
 
   it('formatInviteDate parses YYYY-MM-DD and contains the day, month, and year', () => {
