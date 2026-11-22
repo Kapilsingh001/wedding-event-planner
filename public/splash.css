@@ -138,15 +138,24 @@
   animation: splash-float 3s ease-in-out 1.5s infinite;
 }
 
-/* The logo is uncovered from the bottom to the top, like a flower growing.
-   clip-path hides the part of the picture that is outside its box. */
+/* First the outline of the logo is drawn. The lines and their animation are
+   inside the file logo-sketch.svg, so nothing is needed here but its place. */
+.splash-sketch {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Then the coloured logo fades in on top of the sketch, as if it is coloured in. */
 .splash-mark {
+  position: relative;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  clip-path: inset(100% 0 0 0);
-  animation: splash-reveal 1.15s cubic-bezier(0.22, 0.8, 0.3, 1) 0.15s forwards;
+  opacity: 0;
+  animation: splash-colour 0.8s ease-out 1.45s forwards;
 }
 
 /* A band of light that sweeps across the logo once. The mask is the logo
@@ -161,7 +170,7 @@
   -webkit-mask: url('/logo.webp') center / contain no-repeat;
   mask: url('/logo.webp') center / contain no-repeat;
   opacity: 0;
-  animation: splash-shine 1s ease-in-out 1.3s forwards;
+  animation: splash-shine 1s ease-in-out 2.3s forwards;
 }
 
 /* small gold sparkles around the logo */
@@ -178,7 +187,7 @@
 .splash-spark-1 {
   top: -4px;
   left: 30px;
-  animation-delay: 1.2s;
+  animation-delay: 2.1s;
 }
 
 .splash-spark-2 {
@@ -186,7 +195,7 @@
   bottom: 30px;
   width: 15px;
   height: 15px;
-  animation-delay: 1.6s;
+  animation-delay: 2.4s;
 }
 
 .splash-spark-3 {
@@ -194,21 +203,18 @@
   left: 4px;
   width: 12px;
   height: 12px;
-  animation-delay: 2s;
+  animation-delay: 2.7s;
 }
 
 /* ---------- the name, the line under it and the loading bar ---------- */
 
-.splash-name {
-  margin: 0;
-  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0.01em;
-  color: var(--splash-text);
-  opacity: 0;
-  animation: splash-rise 0.6s ease-out 0.85s forwards;
+/* The name is written letter by letter. The letters and their animation are
+   inside the file wordmark.svg. */
+.splash-wordmark {
+  display: block;
+  width: 262px;
+  height: auto;
+  margin-top: -6px;
 }
 
 .splash-tag {
@@ -220,7 +226,7 @@
   text-transform: uppercase;
   color: var(--splash-muted);
   opacity: 0;
-  animation: splash-rise 0.6s ease-out 1.05s forwards;
+  animation: splash-rise 0.6s ease-out 2.55s forwards;
 }
 
 .splash-bar {
@@ -232,7 +238,7 @@
   border-radius: 999px;
   background: var(--splash-track);
   opacity: 0;
-  animation: splash-rise 0.5s ease-out 1.2s forwards;
+  animation: splash-rise 0.5s ease-out 2.7s forwards;
 }
 
 /* the moving part of the loading bar */
@@ -244,27 +250,21 @@
   width: 40%;
   border-radius: inherit;
   background: var(--splash-pink);
-  animation: splash-slide 1.2s ease-in-out 1.2s infinite;
+  animation: splash-slide 1.2s ease-in-out 2.7s infinite;
 }
 
 /* ---------- the movements ---------- */
 
-@keyframes splash-reveal {
-  0% {
-    clip-path: inset(100% 0 0 0);
-    opacity: 0.2;
-    transform: translateY(14px) scale(0.94);
-    filter: blur(3px);
+@keyframes splash-colour {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+    filter: saturate(0.5) blur(1.5px);
   }
-  60% {
+  to {
     opacity: 1;
-    filter: blur(0);
-  }
-  100% {
-    clip-path: inset(0 0 0 0);
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
+    transform: scale(1);
+    filter: saturate(1) blur(0);
   }
 }
 
@@ -363,18 +363,15 @@
     animation: none !important;
   }
 
-  .splash-mark {
-    clip-path: none;
-  }
-
   .splash-glow,
-  .splash-name,
+  .splash-mark,
   .splash-tag,
   .splash-bar {
     opacity: 1;
   }
 
   .splash-petals,
+  .splash-sketch,
   .splash-ring,
   .splash-spark,
   .splash-shine,
@@ -394,7 +391,7 @@
     margin: -100px 0 0 -100px;
   }
 
-  .splash-name {
-    font-size: 32px;
+  .splash-wordmark {
+    width: 214px;
   }
 }

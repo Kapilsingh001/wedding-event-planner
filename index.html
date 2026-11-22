@@ -42,7 +42,9 @@
     <!-- Styles of the loading screen. A small local file, linked here and not
          from React, so the loading screen is styled from the very first moment. -->
     <link rel="stylesheet" href="/splash.css" />
-    <!-- start loading the logo at once, so the loading screen never waits for it -->
+    <!-- start loading the logo pictures at once, so the loading screen never waits for them -->
+    <link rel="preload" as="image" href="/logo-sketch.svg" type="image/svg+xml" />
+    <link rel="preload" as="image" href="/wordmark.svg" type="image/svg+xml" />
     <link rel="preload" as="image" href="/logo.webp" type="image/webp" />
 
     <!-- The fonts come from the internet, so they must not hold the page back.
@@ -52,7 +54,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap"
       media="print"
       onload="this.media='all'"
     />
@@ -73,8 +75,11 @@
           <span class="splash-ring"></span>
           <span class="splash-ring splash-ring-2"></span>
 
-          <!-- the logo is uncovered from bottom to top, then a band of light sweeps over it -->
+          <!-- 1. the outline of the logo is drawn like a pen sketch (logo-sketch.svg)
+               2. the coloured logo fades in on top of the sketch
+               3. a band of light sweeps over it -->
           <div class="splash-art">
+            <img class="splash-sketch" src="/logo-sketch.svg" alt="" width="560" height="510" />
             <img class="splash-mark" src="/logo.webp" alt="" width="560" height="510" />
             <span class="splash-shine"></span>
           </div>
@@ -84,7 +89,8 @@
           <svg class="splash-spark splash-spark-3" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
         </div>
 
-        <p class="splash-name">Kalyanam</p>
+        <!-- the name is written letter by letter (wordmark.svg) -->
+        <img class="splash-wordmark" src="/wordmark.svg" alt="Kalyanam" width="392" height="133" />
         <p class="splash-tag">Wedding &amp; Event Planner</p>
         <div class="splash-bar"><span></span></div>
       </div>

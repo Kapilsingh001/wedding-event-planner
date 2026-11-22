@@ -14,11 +14,13 @@
 .footer-logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-family: 'Playfair Display', serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: white;
+  gap: 8px;
+  /* the name in the same script letters as the navbar */
+  font-family: 'Great Vibes', 'Playfair Display', cursive;
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1;
+  color: #F9B8C6;
   margin-bottom: 12px;
 }
 
