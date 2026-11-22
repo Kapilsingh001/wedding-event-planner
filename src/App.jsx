@@ -11,6 +11,7 @@ import Vendors from './features/vendors/Vendors.jsx'
 import VendorDetail from './features/vendors/VendorDetail.jsx'
 import Events from './features/planning/Events.jsx'
 import Tasks from './pages/Tasks.jsx'
+import Timeline from './pages/Timeline.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 // All the pages. Every time the address changes we scroll to the top and
@@ -34,6 +35,7 @@ function Pages() {
         <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
         <Route path="/guests" element={<ProtectedRoute><Guests /></ProtectedRoute>} />
         <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+        <Route path="/timeline" element={<ProtectedRoute><Timeline /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>

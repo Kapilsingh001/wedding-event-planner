@@ -496,3 +496,53 @@ textarea {
     transform: translateY(0);
   }
 }
+
+/* ---------- segmented filter buttons with counts ---------- */
+
+.ui-segment {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.ui-segment button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: capitalize;
+  color: var(--text-gray);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.ui-segment button span {
+  min-width: 22px;
+  padding: 1px 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pink-dark);
+  background: var(--pink-light);
+  border-radius: 999px;
+}
+
+.ui-segment button.active {
+  color: white;
+  background: var(--pink-dark);
+}
+
+.ui-segment button.active span {
+  color: var(--pink-dark);
+  background: white;
+}
+
+[data-theme='dark'] .ui-segment button.active span {
+  background: var(--surface);
+}
