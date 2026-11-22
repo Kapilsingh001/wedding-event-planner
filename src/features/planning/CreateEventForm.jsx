@@ -5,8 +5,7 @@ import api from "../../services/api";
 import { getUser } from "../auth/auth";
 import { eventSchema } from "./schemas";
 
-const EVENT_TYPES = ["Wedding", "Engagement", "Reception", "Birthday", "Anniversary"];
-
+const EVENT_TYPES = ["Wedding", "Haldi", "Mehendi", "Sangeet", "Engagement", "Reception", "Birthday", "Anniversary"];
 export default function CreateEventForm({ onClose, onSaved, event }) {
   const isEdit = Boolean(event);
   const [error, setError] = useState("");
