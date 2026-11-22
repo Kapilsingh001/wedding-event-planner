@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { summarizeBudget, summarizeGuests, summarizeTasks, getNextEvent, daysUntil } from './dashboardUtils'
+import {
+  summarizeBudget, summarizeGuests, summarizeTasks, getNextEvent, daysUntil, getUpcomingEvents, getSetupSteps,
+} from './dashboardUtils'
 
 const events = [
   { id: 'e1', title: 'Wedding', date: '2026-12-12', budget: 800000 },
@@ -60,5 +62,23 @@ describe('getNextEvent and daysUntil', () => {
 
   it('counts the days between two dates', () => {
     expect(daysUntil('2026-12-10', '2026-11-18')).toBe(22)
+  })
+})
+
+describe('getUpcomingEvents', () => {
+  it('gives the soonest future events first and skips past ones', () => {
+    const titles = getUpcomingEvents(events, '2026-11-18').map((event) => event.title)
+    expect(titles).toEqual(['Sangeet', 'Wedding'])
+  })
+
+  it('respects the limit', () => {
+    expect(getUpcomingEvents(events, '2026-11-18', 1)).toHaveLength(1)
+  })
+})
+
+describe('getSetupSteps', () => {
+  it('marks a step done only when the user has that data', () => {
+    const steps = getSetupSteps({ events: [{}], guests: [], tasks: [{}], shortlisted: [] })
+    expect(steps.map((step) => step.done)).toEqual([true, false, true, false])
   })
 })

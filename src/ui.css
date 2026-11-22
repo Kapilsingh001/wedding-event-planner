@@ -477,3 +477,22 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- page change animation (used by App.jsx) ---------- */
+
+.page-enter {
+  animation: page-enter 0.3s ease-out;
+}
+
+/* The animation ends with no transform left on the page. That matters:
+   a transformed parent would break position: fixed pop-ups inside it. */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
