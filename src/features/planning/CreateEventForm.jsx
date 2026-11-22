@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import api from "../../services/api";
 import { getUser } from "../auth/auth";
 import { eventSchema } from "./schemas";
+import Dropdown from "../../components/Dropdown.jsx";
+import DatePicker from "../../components/DatePicker.jsx";
 
 const EVENT_TYPES = ["Wedding", "Engagement", "Reception", "Birthday", "Anniversary"];
+const TYPE_OPTIONS = EVENT_TYPES.map((type) => ({ value: type, label: type }));
 
 export default function CreateEventForm({ onClose, onSaved, event }) {
   const isEdit = Boolean(event);
@@ -14,6 +17,7 @@ export default function CreateEventForm({ onClose, onSaved, event }) {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -44,6 +48,14 @@ export default function CreateEventForm({ onClose, onSaved, event }) {
   const venueNames = [
     ...new Set([...(event?.venue ? [event.venue] : []), ...venues.map((v) => v.name)]),
   ];
+
+  const venueOptions = [
+    { value: "", label: "Select a venue" },
+    ...venueNames.map((name) => ({ value: name, label: name })),
+  ];
+
+  // An event cannot be planned for a day that has already passed
+  const today = new Date().toLocaleDateString("en-CA");
 
   // Runs only when Zod says the data is valid
   const onSubmit = async (values) => {
@@ -91,24 +103,34 @@ export default function CreateEventForm({ onClose, onSaved, event }) {
           </Field>
 
           <Field label="Event Type" error={errors.type?.message}>
-            <select style={styles.input} {...register("type")}>
-              {EVENT_TYPES.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
+            {/* Controller connects the shared Dropdown / DatePicker to React Hook Form */}
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <Dropdown label="Event type" value={field.value} onChange={field.onChange} options={TYPE_OPTIONS} />
+              )}
+            />
           </Field>
 
           <Field label="Date" error={errors.date?.message}>
-            <input type="date" style={styles.input} {...register("date")} />
+            <Controller
+              name="date"
+              control={control}
+              render={({ field }) => (
+                <DatePicker id="event-date" value={field.value} onChange={field.onChange} min={today} />
+              )}
+            />
           </Field>
 
           <Field label="Venue" error={errors.venue?.message}>
-            <select style={styles.input} {...register("venue")}>
-              <option value="">Select a venue</option>
-              {venueNames.map((name) => (
-                <option key={name} value={name}>{name}</option>
-              ))}
-            </select>
+            <Controller
+              name="venue"
+              control={control}
+              render={({ field }) => (
+                <Dropdown label="Venue" value={field.value} onChange={field.onChange} options={venueOptions} />
+              )}
+            />
           </Field>
 
           <Field label="Budget (₹)" error={errors.budget?.message}>
