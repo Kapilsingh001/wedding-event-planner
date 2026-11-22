@@ -5,6 +5,7 @@ import { logout } from '../features/auth/auth'
 import { logoutSuccess } from '../features/auth/authSlice'
 import { getTheme, applyTheme } from '../theme.js'
 import Icon from './Icons.jsx'
+import ProfileCard from './ProfileCard.jsx'
 import './Navbar.css'
 
 function Navbar() {
@@ -14,7 +15,6 @@ function Navbar() {
   const dispatch = useDispatch()
   useLocation()
   const user = useSelector((s) => s.auth.user)
-  const firstName = user ? (user.name || 'there').split(' ')[0] : ''
 
   function handleLogout() {
     logout()
@@ -72,10 +72,8 @@ function Navbar() {
             </button>
             {user ? (
               <>
-                <span className="navbar-user">
-                  <Icon name="user" size={16} />
-                  Hi, {firstName}
-                </span>
+                {/* "Hi, Name": a click opens the profile card */}
+                <ProfileCard user={user} />
                 <button type="button" className="btn btn-ghost" onClick={handleLogout}>
                   Logout
                 </button>

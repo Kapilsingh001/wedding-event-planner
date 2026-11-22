@@ -1,0 +1,299 @@
+/* The profile button in the navbar and the card that opens under it.
+   Only the colour variables from index.css are used, so light and dark
+   mode both work without extra rules. */
+
+.profile {
+  position: relative;
+}
+
+/* ---------- the "Hi, Name" button ---------- */
+
+.profile-button {
+  padding: 4px 10px 4px 4px;
+  font-family: inherit;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.profile-button:hover,
+.profile-button[aria-expanded='true'] {
+  background: var(--pink-light);
+  border-color: var(--soft);
+}
+
+.profile-chevron {
+  display: inline-flex;
+  transition: transform 0.2s;
+}
+
+.profile-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* the navbar colours its icons pink; the small arrow stays grey */
+.profile-button .profile-chevron svg {
+  color: var(--text-gray);
+}
+
+/* ---------- the round picture ---------- */
+
+.profile-avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-avatar-initials {
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, var(--pink), var(--pink-deeper));
+}
+
+.profile-avatar-sm {
+  width: 28px;
+  height: 28px;
+  font-size: 11.5px;
+}
+
+.profile-avatar-lg {
+  width: 76px;
+  height: 76px;
+  font-size: 27px;
+  border: 3px solid var(--surface);
+  box-shadow: 0 0 0 2px var(--soft);
+}
+
+/* ---------- the card ---------- */
+
+.profile-card {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 200;
+  width: 340px;
+  overflow: hidden;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-hover);
+  animation: ui-pop 0.18s ease-out;
+}
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 20px 16px;
+  background: linear-gradient(180deg, var(--pink-light), var(--surface));
+}
+
+.profile-photo {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+
+/* the small camera button on the corner of the photo */
+.profile-photo-button {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: white;
+  background: var(--pink-dark);
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.profile-photo-button:hover {
+  background: var(--pink-deeper);
+  transform: scale(1.08);
+}
+
+.profile-photo-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.profile-id {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-id strong {
+  font-family: 'Playfair Display', serif;
+  font-size: 19px;
+  line-height: 1.25;
+  color: var(--text-dark);
+  overflow-wrap: anywhere;
+}
+
+.profile-id span {
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--text-gray);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-body {
+  padding: 0 20px 20px;
+}
+
+.profile-notice {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.profile-hint {
+  font-size: 12px;
+  color: var(--text-gray);
+}
+
+/* ---------- the four numbers ---------- */
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.profile-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.profile-stat:hover {
+  background: var(--pink-light);
+  border-color: var(--soft);
+  transform: translateY(-2px);
+}
+
+.profile-stat strong {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--pink-dark);
+}
+
+.profile-stat span {
+  font-size: 11.5px;
+  color: var(--text-gray);
+}
+
+.profile-next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: var(--text-gray);
+  background: var(--pink-light);
+  border-radius: 10px;
+}
+
+.profile-next svg {
+  flex-shrink: 0;
+  color: var(--pink-dark);
+}
+
+.profile-next strong {
+  color: var(--text-dark);
+}
+
+/* ---------- buttons and the edit form ---------- */
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* the navbar gives its own size to buttons; inside the card they stay small */
+.profile .profile-card .btn {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+/* "Change photo" and "Remove photo": small text links at the top of the form */
+.profile-photo-links {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.profile-link {
+  padding: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pink-dark);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.profile-link:hover {
+  color: var(--pink-deeper);
+  text-decoration: underline;
+}
+
+.profile-link:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.profile-form .ui-field {
+  margin-bottom: 10px;
+}
+
+.profile-form .ui-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ---------- phone: the card sits inside the open menu ---------- */
+
+@media (max-width: 900px) {
+  .profile {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profile-button {
+    align-self: center;
+  }
+
+  .profile-card {
+    position: static;
+    width: auto;
+    margin-top: 10px;
+    box-shadow: none;
+  }
+}
