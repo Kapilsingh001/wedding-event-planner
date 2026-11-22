@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
+import { getShareOrigin } from '../../services/siteUrl';
 import { getUser } from '../auth/auth.js';
 import Dropdown from '../../components/Dropdown.jsx';
 import Icon from '../../components/Icons.jsx';
@@ -77,7 +78,7 @@ export default function InviteModal({ guest, hostName, onClose, onInvited }) {
   // The link carries the chosen event, so the guest's page shows the same
   // event as the card.
   const inviteUrl = typeof window !== 'undefined' && guest?.id
-    ? `${window.location.origin}/invite/${guest.id}${selectedEvent ? `?event=${selectedEvent.id}` : ''}`
+    ? `${getShareOrigin()}/invite/${guest.id}${selectedEvent ? `?event=${selectedEvent.id}` : ''}`
     : '';
 
   // A different event means a different card, so a card copied earlier is wrong now

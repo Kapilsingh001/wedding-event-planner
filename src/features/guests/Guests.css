@@ -868,3 +868,36 @@
   border-color: #2F7A4C;
   color: #C8F5D8;
 }
+
+/* ---------- the message a guest wrote when they chose "Cannot Attend" ---------- */
+
+.guests-rsvp-note {
+  max-width: 440px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-gray);
+  background: var(--pink-light);
+  border-left: 3px solid var(--pink-dark);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.guests-rsvp-note span {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+/* "Maybe" answers get a blue dropdown, so they are not mixed up with Pending */
+.guests-rsvp-dd-tentative .dropdown-button {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+[data-theme='dark'] .guests-rsvp-dd-tentative .dropdown-button {
+  background: #1e2a44;
+  color: #93c5fd;
+  border-color: #2b3f66;
+}

@@ -13,11 +13,13 @@ if (!process.env.VITE_SITE_URL) {
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  // The website answers on http://127.0.0.1:5173 and http://localhost:5173.
-  // WhatsApp makes a link clickable only when it has a number address or a real
-  // domain, never "localhost". So invitation links use the 127.0.0.1 address.
+  // The website answers on http://localhost:5173 and http://127.0.0.1:5173.
+  // Invitation links use a real domain name that points back to this computer
+  // (see src/services/siteUrl.js), because WhatsApp only makes real domain
+  // names clickable. allowedHosts lets Vite answer when it is opened by that name.
   server: {
     host: '127.0.0.1',
+    allowedHosts: ['.localtest.me'],
   },
   // Vitest reads this part: a fake browser (jsdom) for the tests
   test: {
