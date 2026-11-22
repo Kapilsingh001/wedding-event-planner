@@ -5,16 +5,22 @@ import { getUser } from '../features/auth/auth'
 import { getShortlist } from '../features/vendors/shortlist'
 import Icon from '../components/Icons.jsx'
 import {
-  summarizeBudget, summarizeGuests, summarizeTasks, getNextEvent, daysUntil, getUpcomingEvents, getSetupSteps,
+  summarizeBudget, summarizeGuests, summarizeTasks, getNextEvent, daysUntil, getUpcomingEvents, getSetupSteps, getNextStep,
 } from './dashboardUtils'
+import { getDayLabel } from './timelineUtils'
+import { getDueInfo } from './tasksUtils'
 import './UserDashboard.css'
+
+// short names for the setup steps, shown as small pills
+const STEP_LABELS = { event: 'Event', guests: 'Guests', tasks: 'Checklist', vendors: 'Vendors' }
 
 function formatMoney(value) {
   return '₹' + Number(value).toLocaleString('en-IN')
 }
 
-function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+// 'T00:00' makes the browser read the date in local time, not in UTC
+function toDate(dateStr) {
+  return new Date(dateStr + 'T00:00')
 }
 
 function UserDashboard() {
@@ -73,31 +79,36 @@ function UserDashboard() {
   const upcomingEvents = getUpcomingEvents(data.events, today)
   const steps = getSetupSteps(data)
   const stepsDone = steps.filter((step) => step.done).length
+  const nextStep = getNextStep(steps)
 
   const upcomingTasks = data.tasks
     .filter((task) => !task.done)
     .sort((a, b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999'))
     .slice(0, 4)
 
-  // money spent on one event, for the small bars in "Upcoming events"
+  // money spent on one event, for the small bars in "Upcoming ceremonies"
   const spentOn = (eventId) =>
     data.expenses.filter((expense) => expense.eventId === eventId).reduce((sum, expense) => sum + Number(expense.amount), 0)
 
   return (
     <div className="container dash">
-      {/* ---------- welcome banner with photo and countdown ---------- */}
+      {/* ---------- 1. welcome banner: the next ceremony and the countdown ---------- */}
       <header className="dash-hero">
         <div className="dash-hero-photo" aria-hidden="true" />
         <div className="dash-hero-text">
           <p className="dash-eyebrow">Your wedding dashboard</p>
           <h1>Welcome back, {firstName}</h1>
           {nextEvent ? (
-            <p className="dash-sub">
-              <strong>{nextEvent.title}</strong> is on {formatDate(nextEvent.date)}
-              {nextEvent.venue ? ` at ${nextEvent.venue}` : ''}. Here is where everything stands.
-            </p>
+            <ul className="dash-facts" aria-label="Your next ceremony">
+              <li><Icon name="sparkles" size={16} /> Next: <strong>{nextEvent.title}</strong></li>
+              <li>
+                <Icon name="calendar" size={16} />
+                {toDate(nextEvent.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+              </li>
+              {nextEvent.venue && <li><Icon name="landmark" size={16} /> {nextEvent.venue}</li>}
+            </ul>
           ) : (
-            <p className="dash-sub">Plan your first event to see your progress here.</p>
+            <p className="dash-sub">Plan your first ceremony to see your progress here.</p>
           )}
           <div className="dash-hero-actions">
             <Link to="/events" className="btn">
@@ -110,113 +121,149 @@ function UserDashboard() {
         </div>
 
         {nextEvent && (
-          <div className="dash-countdown" aria-label={`${daysLeft} days until ${nextEvent.title}`}>
-            <strong>{daysLeft}</strong>
-            <span>{daysLeft === 1 ? 'day to go' : 'days to go'}</span>
+          <div className="dash-countdown" aria-label={`${getDayLabel(daysLeft)}: ${nextEvent.title}`}>
+            {daysLeft === 0 ? (
+              <>
+                <strong className="dash-countdown-word">Today</strong>
+                <span>is the day</span>
+              </>
+            ) : (
+              <>
+                <strong>{daysLeft}</strong>
+                <span>{daysLeft === 1 ? 'day to go' : 'days to go'}</span>
+              </>
+            )}
           </div>
         )}
       </header>
 
-      {/* ---------- get started steps (hidden once all four are done) ---------- */}
-      {stepsDone < steps.length && (
-        <section className="dash-steps" aria-labelledby="dash-steps-title">
-          <div className="dash-steps-head">
-            <h2 id="dash-steps-title">Get started</h2>
-            <span>{stepsDone} of {steps.length} done</span>
+      {/* ---------- 2. setup progress: one slim line, gone once all four are done ---------- */}
+      {nextStep && (
+        <section className="dash-setup" aria-label="Setup progress">
+          <div className="dash-setup-text">
+            <strong>Finish setting up</strong>
+            <span>{stepsDone} of {steps.length} steps done</span>
           </div>
-          <ol>
-            {steps.map((step, index) => (
-              <li key={step.key} className={step.done ? 'done' : ''}>
-                <Link to={step.to}>
-                  <span className="dash-step-mark">{step.done ? <Icon name="check" size={16} /> : index + 1}</span>
-                  <span>
-                    <strong>{step.title}</strong>
-                    <small>{step.text}</small>
-                  </span>
-                </Link>
+          <ol className="dash-setup-steps">
+            {steps.map((step) => (
+              <li key={step.key} className={step.done ? 'done' : ''} title={step.title}>
+                {step.done && <Icon name="check" size={13} />}
+                {STEP_LABELS[step.key]}
               </li>
             ))}
           </ol>
+          <Link to={nextStep.to} className="btn btn-sm">
+            {nextStep.title} <Icon name="arrow" size={16} />
+          </Link>
         </section>
       )}
 
-      {/* ---------- four summary cards ---------- */}
-      <section className="dash-stats" aria-label="Summary">
-        <article className="dash-card">
-          <div className="dash-card-top">
-            <span className="dash-icon"><Icon name="calendar" /></span>
-            <h2>Events</h2>
-          </div>
-          <p className="dash-number">{data.events.length}</p>
-          <p className="dash-detail">
-            {nextEvent ? <>Next: <strong>{nextEvent.title}</strong>, {formatDate(nextEvent.date)}</> : 'No upcoming events'}
-          </p>
-          <Link to="/events" className="dash-link">Open events <Icon name="arrow" size={16} /></Link>
-        </article>
+      {/* ---------- 3. the four numbers, in one card. Each one opens its page ---------- */}
+      <section className="dash-stats" aria-label="At a glance">
+        <Link to="/events" className="dash-stat">
+          <span className="dash-stat-label"><Icon name="wallet" size={16} /> Budget</span>
+          <span className="dash-stat-number">{formatMoney(budget.totalSpent)}</span>
+          {budget.totalBudget === 0 ? (
+            <span className="dash-stat-note">No budget set yet</span>
+          ) : (
+            <>
+              <span className="dash-stat-note">spent of {formatMoney(budget.totalBudget)}</span>
+              <span className="dash-bar" role="progressbar" aria-valuenow={budget.percent} aria-valuemin="0" aria-valuemax="100">
+                <span className={overBudget ? 'dash-bar-fill over' : 'dash-bar-fill'} style={{ width: `${Math.min(budget.percent, 100)}%` }} />
+              </span>
+              <span className={overBudget ? 'dash-stat-note dash-over' : 'dash-stat-note'}>
+                {overBudget ? `Over by ${formatMoney(-budget.remaining)}` : `${formatMoney(budget.remaining)} left`}
+              </span>
+            </>
+          )}
+        </Link>
 
-        <article className="dash-card">
-          <div className="dash-card-top">
-            <span className="dash-icon"><Icon name="wallet" /></span>
-            <h2>Budget</h2>
-          </div>
-          <p className="dash-number">{formatMoney(budget.totalSpent)}</p>
-          <p className="dash-detail">spent of {formatMoney(budget.totalBudget)}</p>
-          <div className="dash-bar" role="progressbar" aria-valuenow={budget.percent} aria-valuemin="0" aria-valuemax="100">
-            <div className={overBudget ? 'dash-bar-fill over' : 'dash-bar-fill'} style={{ width: `${Math.min(budget.percent, 100)}%` }} />
-          </div>
-          <p className={overBudget ? 'dash-detail dash-over' : 'dash-detail'}>
-            {overBudget ? `Over budget by ${formatMoney(-budget.remaining)}` : `${formatMoney(budget.remaining)} remaining`}
-          </p>
-        </article>
+        <Link to="/guests" className="dash-stat">
+          <span className="dash-stat-label"><Icon name="users" size={16} /> Guests</span>
+          {guests.total === 0 ? (
+            <>
+              <span className="dash-stat-number">0</span>
+              <span className="dash-stat-note">No guests added yet</span>
+            </>
+          ) : (
+            <>
+              <span className="dash-stat-number">{guests.attending}<span>/{guests.total}</span></span>
+              <span className="dash-stat-note">attending</span>
+              <span className="dash-stat-note">
+                {guests.pending} pending{guests.declined > 0 ? ` · ${guests.declined} declined` : ''}
+              </span>
+            </>
+          )}
+        </Link>
 
-        <article className="dash-card">
-          <div className="dash-card-top">
-            <span className="dash-icon"><Icon name="users" /></span>
-            <h2>Guests</h2>
-          </div>
-          <p className="dash-number">{guests.attending}<span>/{guests.total}</span></p>
-          <p className="dash-detail">attending · {guests.pending} pending · {guests.declined} declined</p>
-          <Link to="/guests" className="dash-link">Open guest list <Icon name="arrow" size={16} /></Link>
-        </article>
+        <Link to="/tasks" className="dash-stat">
+          <span className="dash-stat-label"><Icon name="list" size={16} /> Tasks</span>
+          {tasks.total === 0 ? (
+            <>
+              <span className="dash-stat-number">0</span>
+              <span className="dash-stat-note">No tasks yet</span>
+            </>
+          ) : (
+            <>
+              <span className="dash-stat-number">{tasks.done}<span>/{tasks.total}</span></span>
+              <span className="dash-stat-note">done</span>
+              <span className="dash-bar" role="progressbar" aria-valuenow={tasks.percent} aria-valuemin="0" aria-valuemax="100">
+                <span className="dash-bar-fill" style={{ width: `${tasks.percent}%` }} />
+              </span>
+              <span className="dash-stat-note">{tasks.percent}% of the checklist</span>
+            </>
+          )}
+        </Link>
 
-        <article className="dash-card">
-          <div className="dash-card-top">
-            <span className="dash-icon"><Icon name="list" /></span>
-            <h2>Tasks</h2>
-          </div>
-          <p className="dash-number">{tasks.done}<span>/{tasks.total}</span></p>
-          <div className="dash-bar" role="progressbar" aria-valuenow={tasks.percent} aria-valuemin="0" aria-valuemax="100">
-            <div className="dash-bar-fill" style={{ width: `${tasks.percent}%` }} />
-          </div>
-          <p className="dash-detail">{tasks.percent}% of the checklist done</p>
-          <Link to="/tasks" className="dash-link">Open checklist <Icon name="arrow" size={16} /></Link>
-        </article>
+        <Link to="/timeline" className="dash-stat">
+          <span className="dash-stat-label"><Icon name="calendar" size={16} /> Events</span>
+          <span className="dash-stat-number">{data.events.length}</span>
+          {data.events.length === 0 ? (
+            <span className="dash-stat-note">No ceremony planned yet</span>
+          ) : (
+            <>
+              <span className="dash-stat-note">{data.events.length === 1 ? 'ceremony planned' : 'ceremonies planned'}</span>
+              <span className="dash-stat-note">
+                {nextEvent ? <>Next: <strong>{nextEvent.title}</strong></> : 'None upcoming'}
+              </span>
+            </>
+          )}
+        </Link>
       </section>
 
-      {/* ---------- three lists ---------- */}
+      {/* ---------- 4. what is coming: ceremonies on the left, tasks and vendors on the right ---------- */}
       <div className="dash-grid">
         <section className="dash-panel" aria-labelledby="dash-events-title">
-          <h2 id="dash-events-title">Upcoming events</h2>
+          <div className="dash-panel-head">
+            <h2 id="dash-events-title">Upcoming ceremonies</h2>
+            <Link to="/timeline">Timeline <Icon name="arrow" size={15} /></Link>
+          </div>
           {upcomingEvents.length === 0 ? (
-            <div className="dash-empty">
-              <span className="dash-empty-icon"><Icon name="calendar" size={22} /></span>
-              <p>No upcoming events.</p>
-              <Link to="/events">Plan an event</Link>
-            </div>
+            <p className="dash-empty">Nothing planned yet. <Link to="/events">Plan a ceremony</Link></p>
           ) : (
-            <ul className="dash-list">
+            <ul className="dash-events">
               {upcomingEvents.map((event) => {
+                const date = toDate(event.date)
                 const spent = spentOn(event.id)
                 const percent = Number(event.budget) > 0 ? Math.round((spent / Number(event.budget)) * 100) : 0
                 return (
-                  <li key={event.id} className="dash-event">
-                    <div className="dash-event-top">
-                      <strong>{event.title}</strong>
-                      <small>{daysUntil(event.date, today)} days</small>
+                  <li key={event.id}>
+                    <div className="dash-date" aria-hidden="true">
+                      <strong>{date.getDate()}</strong>
+                      <span>{date.toLocaleDateString('en-IN', { month: 'short' })}</span>
                     </div>
-                    <small>{formatDate(event.date)} · {formatMoney(spent)} of {formatMoney(event.budget)}</small>
-                    <div className="dash-bar">
-                      <div className={percent > 100 ? 'dash-bar-fill over' : 'dash-bar-fill'} style={{ width: `${Math.min(percent, 100)}%` }} />
+                    <div className="dash-event-body">
+                      <div className="dash-event-top">
+                        <strong>{event.title}</strong>
+                        <span className="dash-chip">{getDayLabel(daysUntil(event.date, today))}</span>
+                      </div>
+                      <span className="dash-event-place">{event.venue || event.type}</span>
+                      <div className="dash-event-money">
+                        <span className="dash-bar">
+                          <span className={percent > 100 ? 'dash-bar-fill over' : 'dash-bar-fill'} style={{ width: `${Math.min(percent, 100)}%` }} />
+                        </span>
+                        <small className={percent > 100 ? 'dash-over' : ''}>{formatMoney(spent)} of {formatMoney(event.budget)}</small>
+                      </div>
                     </div>
                   </li>
                 )
@@ -225,50 +272,57 @@ function UserDashboard() {
           )}
         </section>
 
-        <section className="dash-panel" aria-labelledby="dash-tasks-title">
-          <h2 id="dash-tasks-title">Next tasks</h2>
-          {upcomingTasks.length === 0 ? (
-            <div className="dash-empty">
-              <span className="dash-empty-icon"><Icon name="list" size={22} /></span>
-              <p>Nothing pending.</p>
-              <Link to="/tasks">Open checklist</Link>
+        <div className="dash-side">
+          <section className="dash-panel" aria-labelledby="dash-tasks-title">
+            <div className="dash-panel-head">
+              <h2 id="dash-tasks-title">Next tasks</h2>
+              <Link to="/tasks">Checklist <Icon name="arrow" size={15} /></Link>
             </div>
-          ) : (
-            <ul className="dash-list">
-              {upcomingTasks.map((task) => (
-                <li key={task.id}>
-                  <span>{task.title}</span>
-                  <small className={task.dueDate && task.dueDate < today ? 'dash-over' : ''}>
-                    {task.dueDate ? formatDate(task.dueDate) : 'No date'}
-                  </small>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+            {upcomingTasks.length === 0 ? (
+              <p className="dash-empty">Nothing pending. <Link to="/tasks">Add a task</Link></p>
+            ) : (
+              <ul className="dash-rows">
+                {upcomingTasks.map((task) => {
+                  const due = getDueInfo(task.dueDate, today)
+                  return (
+                    <li key={task.id}>
+                      <span className="dash-dot" aria-hidden="true" />
+                      <span className="dash-row-title">{task.title}</span>
+                      <small className={`dash-due dash-due-${due.status}`}>{due.label}</small>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
 
-        <section className="dash-panel" aria-labelledby="dash-vendors-title">
-          <h2 id="dash-vendors-title">Shortlisted vendors</h2>
-          {data.shortlisted.length === 0 ? (
-            <div className="dash-empty">
-              <span className="dash-empty-icon"><Icon name="heart" size={22} /></span>
-              <p>No vendors shortlisted yet.</p>
-              <Link to="/vendors">Browse vendors</Link>
+          <section className="dash-panel" aria-labelledby="dash-vendors-title">
+            <div className="dash-panel-head">
+              <h2 id="dash-vendors-title">Shortlisted vendors</h2>
+              <Link to="/vendors">Browse <Icon name="arrow" size={15} /></Link>
             </div>
-          ) : (
-            <ul className="dash-list">
-              {data.shortlisted.map((vendor) => (
-                <li key={vendor.id}>
-                  <Link to={`/vendors/${vendor.id}`}>
-                    <strong>{vendor.name}</strong>
-                    <small>{vendor.category} · {vendor.city}</small>
-                  </Link>
-                  <span className="dash-price">{formatMoney(vendor.price)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+            {data.shortlisted.length === 0 ? (
+              <p className="dash-empty">None saved yet. <Link to="/vendors">Find vendors</Link></p>
+            ) : (
+              <>
+                <ul className="dash-rows">
+                  {data.shortlisted.slice(0, 3).map((vendor) => (
+                    <li key={vendor.id}>
+                      <Link to={`/vendors/${vendor.id}`} className="dash-row-title">
+                        <strong>{vendor.name}</strong>
+                        <small>{vendor.category} · {vendor.city}</small>
+                      </Link>
+                      <span className="dash-price">{formatMoney(vendor.price)}</span>
+                    </li>
+                  ))}
+                </ul>
+                {data.shortlisted.length > 3 && (
+                  <Link to="/vendors" className="dash-more">+{data.shortlisted.length - 3} more</Link>
+                )}
+              </>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   )
