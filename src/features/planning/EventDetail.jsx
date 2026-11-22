@@ -4,7 +4,14 @@ import AddExpenseForm from "./AddExpenseForm";
 import CreateEventForm from "./CreateEventForm";
 import BudgetChart from "./BudgetChart";
 import BudgetBarChart from "./BudgetBarChart";
-import { EXPENSE_CATEGORIES, buildPlannedVsActual, getTotalPlanned } from "./budgetUtils";
+import {
+  EXPENSE_CATEGORIES,
+  buildPlannedVsActual,
+  getTotalPlanned,
+  getPaymentSummary,
+  isPaid,
+  isOverdue,
+} from "./budgetUtils";
 
 // Turn event.plannedBudget (object, may be missing) into text values for the inputs
 const toInputs = (plannedBudget) => {
@@ -89,6 +96,17 @@ export default function EventDetail({ eventId, onBack }) {
     }
   };
 
+  // PATCH only the payment fields, then replace that expense in state
+  const handleMarkPaid = async (expenseId) => {
+    setActionError("");
+    try {
+      const res = await api.patch(`/expenses/${expenseId}`, { paid: true, dueDate: "" });
+      setExpenses((prev) => prev.map((e) => (e.id === expenseId ? res.data : e)));
+    } catch (err) {
+      setActionError("Could not mark the payment as paid. Please try again.");
+    }
+  };
+
   const handlePlanChange = (category, value) => {
     setPlanMessage(null);
     setPlannedInputs((prev) => ({ ...prev, [category]: value }));
@@ -156,6 +174,21 @@ export default function EventDetail({ eventId, onBack }) {
   const comparison = buildPlannedVsActual(event.plannedBudget, expenses);
   const overBudget = comparison.filter((row) => row.over);
 
+  // Payment tracking
+  const today = new Date().toLocaleDateString("en-CA");
+  const payment = getPaymentSummary(expenses, today);
+
+  const renderStatus = (exp) => {
+    if (isPaid(exp)) {
+      return <span className="ui-badge" style={styles.badgePaid}>Paid</span>;
+    }
+    const dueText = exp.dueDate ? `due ${formatDate(exp.dueDate)}` : "no due date";
+    if (isOverdue(exp, today)) {
+      return <span className="ui-badge" style={styles.badgeOverdue}>Overdue, {dueText}</span>;
+    }
+    return <span className="ui-badge" style={styles.badgePending}>Pending, {dueText}</span>;
+  };
+
   return (
     <div style={styles.page}>
       <button onClick={onBack} style={styles.backBtn}>← Back to Events</button>
@@ -182,6 +215,18 @@ export default function EventDetail({ eventId, onBack }) {
           <Stat label="Budget" value={formatCurrency(event.budget)} color="#1f1015" />
           <Stat label="Total Spent" value={formatCurrency(totalSpent)} color="#1f1015" />
           <Stat label="Remaining" value={formatCurrency(remaining)} color={remaining < 0 ? "#dc2626" : "#059669"} />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", borderTop: "1px solid #fde3ea", paddingTop: "16px", marginTop: "16px" }}>
+          <Stat label="Paid" value={formatCurrency(payment.paidTotal)} color="#059669" />
+          <Stat label="Pending" value={formatCurrency(payment.pendingTotal)} color="#b45309" />
+          <div>
+            {payment.overdueCount > 0 && (
+              <p style={{ fontSize: "14px", fontWeight: "700", color: "#dc2626", margin: 0 }}>
+                {payment.overdueCount} {payment.overdueCount === 1 ? "payment" : "payments"} overdue
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -260,12 +305,13 @@ export default function EventDetail({ eventId, onBack }) {
       {expenses.length === 0 ? (
         <p style={{ color: "#9f6b7a" }}>No expenses recorded yet.</p>
       ) : (
-        <div style={styles.tableWrap}>
+        <div style={{ ...styles.tableWrap, overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ backgroundColor: "#fff5f7" }}>
                 <th style={styles.th}>Category</th>
                 <th style={styles.th}>Date</th>
+                <th style={styles.th}>Status</th>
                 <th style={{ ...styles.th, textAlign: "right" }}>Amount</th>
                 <th style={{ ...styles.th, textAlign: "right" }}>Actions</th>
               </tr>
@@ -275,8 +321,12 @@ export default function EventDetail({ eventId, onBack }) {
                 <tr key={exp.id} style={{ borderTop: "1px solid #fde3ea" }}>
                   <td style={styles.td}>{exp.category}</td>
                   <td style={styles.td}>{formatDate(exp.date)}</td>
+                  <td style={styles.td}>{renderStatus(exp)}</td>
                   <td style={{ ...styles.td, textAlign: "right", fontWeight: "600" }}>{formatCurrency(exp.amount)}</td>
-                  <td style={{ ...styles.td, textAlign: "right" }}>
+                  <td style={{ ...styles.td, textAlign: "right", whiteSpace: "nowrap" }}>
+                    {!isPaid(exp) && (
+                      <button onClick={() => handleMarkPaid(exp.id)} style={styles.btnTinyPaid}>Mark paid</button>
+                    )}
                     <button onClick={() => setEditingExpense(exp)} style={styles.btnTinyOutline}>Edit</button>
                     <button onClick={() => handleDeleteExpense(exp.id)} style={styles.btnTinyDanger}>Delete</button>
                   </td>
@@ -398,6 +448,21 @@ const styles = {
     padding: "3px 12px",
     borderRadius: "999px",
   },
+  badgePaid: {
+    backgroundColor: "#d1fae5",
+    color: "#065f46",
+    whiteSpace: "nowrap",
+  },
+  badgePending: {
+    backgroundColor: "#fef3c7",
+    color: "#92400e",
+    whiteSpace: "nowrap",
+  },
+  badgeOverdue: {
+    backgroundColor: "#fee2e2",
+    color: "#b91c1c",
+    whiteSpace: "nowrap",
+  },
   btnSmall: {
     backgroundColor: "#f43f5e",
     color: "#fff",
@@ -432,6 +497,17 @@ const styles = {
     backgroundColor: "#fff",
     color: "#f43f5e",
     border: "1px solid #f43f5e",
+    borderRadius: "999px",
+    padding: "4px 12px",
+    fontSize: "12px",
+    fontWeight: "600",
+    cursor: "pointer",
+    marginRight: "6px",
+  },
+  btnTinyPaid: {
+    backgroundColor: "#d1fae5",
+    color: "#065f46",
+    border: "1px solid #a7f3d0",
     borderRadius: "999px",
     padding: "4px 12px",
     fontSize: "12px",
