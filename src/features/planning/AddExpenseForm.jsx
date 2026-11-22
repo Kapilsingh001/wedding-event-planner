@@ -2,21 +2,29 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import api from "../../services/api";
-import { EXPENSE_CATEGORIES } from "./budgetUtils";
-import { expenseSchema } from "./schemas";
 import Dropdown from "../../components/Dropdown.jsx";
 import DatePicker from "../../components/DatePicker.jsx";
+import { EXPENSE_CATEGORIES } from "./budgetUtils";
+import { expenseSchema } from "./schemas";
+
 
 const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map((cat) => ({ value: cat, label: cat }));
+
+const STATUS_OPTIONS = [
+  { value: "Paid", label: "Paid" },
+  { value: "Pending", label: "Pending" },
+];
 
 export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
   const isEdit = Boolean(expense);
   const [error, setError] = useState("");
+  const today = new Date().toLocaleDateString("en-CA");
 
-  const {
+    const {
     register,
     control,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(expenseSchema),
@@ -24,15 +32,23 @@ export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
       category: expense ? expense.category : "Catering",
       amount: expense ? expense.amount : "",
       date: expense ? expense.date : "",
+      // old expenses have no "paid" field: only paid === false is Pending
+      status: expense && expense.paid === false ? "Pending" : "Paid",
+      dueDate: expense && expense.dueDate ? expense.dueDate : "",
     },
   });
 
+  const status = watch("status");
+
   const onSubmit = async (values) => {
     setError("");
+    const isPending = values.status === "Pending";
     const body = {
       category: values.category,
       amount: values.amount,
       date: values.date,
+      paid: !isPending,
+      dueDate: isPending ? values.dueDate : "",
     };
 
     try {
@@ -94,6 +110,42 @@ export default function AddExpenseForm({ eventId, onClose, onSaved, expense }) {
             {errors.date && <p style={styles.fieldError}>{errors.date.message}</p>}
           </div>
 
+          <div style={{ marginBottom: "15px" }}>
+            <label style={styles.label} htmlFor="expense-status">Payment status</label>
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <Dropdown
+                  id="expense-status"
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={STATUS_OPTIONS}
+                />
+              )}
+            />
+            {errors.status && <p style={styles.fieldError}>{errors.status.message}</p>}
+          </div>
+
+          {status === "Pending" && (
+            <div style={{ marginBottom: "15px" }}>
+              <label style={styles.label} htmlFor="expense-due">Due date</label>
+              <Controller
+                name="dueDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    id="expense-due"
+                    value={field.value}
+                    onChange={field.onChange}
+                    min={today}
+                  />
+                )}
+              />
+              {errors.dueDate && <p style={styles.fieldError}>{errors.dueDate.message}</p>}
+            </div>
+          )}
+
           <div style={{ display: "flex", gap: "10px", marginTop: "22px" }}>
             <button type="button" onClick={onClose} style={styles.btnSecondary}>Cancel</button>
             <button type="submit" disabled={isSubmitting} style={{ ...styles.btnPrimary, opacity: isSubmitting ? 0.7 : 1 }}>
@@ -124,6 +176,8 @@ const styles = {
     padding: "26px",
     width: "100%",
     maxWidth: "400px",
+    maxHeight: "90vh",
+    overflowY: "auto",
   },
   closeBtn: {
     background: "none",

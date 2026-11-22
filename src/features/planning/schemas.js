@@ -8,8 +8,15 @@ export const eventSchema = z.object({
   budget: z.coerce.number().gt(0, "Budget must be more than 0"),
 });
 
-export const expenseSchema = z.object({
-  category: z.string().min(1, "Category is required"),
-  amount: z.coerce.number().gt(0, "Amount must be more than 0"),
-  date: z.string().min(1, "Date is required"),
-});
+export const expenseSchema = z
+  .object({
+    category: z.string().min(1, "Category is required"),
+    amount: z.coerce.number().gt(0, "Amount must be more than 0"),
+    date: z.string().min(1, "Date is required"),
+    status: z.enum(["Paid", "Pending"]).default("Paid"),
+    dueDate: z.string().optional(),
+  })
+  .refine((data) => data.status !== "Pending" || Boolean(data.dueDate), {
+    message: "Choose a due date for a pending payment",
+    path: ["dueDate"],
+  });

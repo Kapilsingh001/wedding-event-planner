@@ -40,3 +40,31 @@ export const buildPlannedVsActual = (plannedBudget, expenses = []) => {
     };
   });
 };
+
+// ---------- Payment tracking ----------
+
+// Old expenses have no "paid" field, so they count as paid.
+export const isPaid = (expense) => expense.paid !== false;
+
+// today and dueDate are 'YYYY-MM-DD' strings, so normal string comparison works.
+export const isOverdue = (expense, today) =>
+  !isPaid(expense) && Boolean(expense.dueDate) && expense.dueDate < today;
+
+export const getPaymentSummary = (expenses = [], today) => {
+  let paidTotal = 0;
+  let pendingTotal = 0;
+  let pendingCount = 0;
+  let overdueCount = 0;
+
+  expenses.forEach((exp) => {
+    if (isPaid(exp)) {
+      paidTotal += Number(exp.amount);
+    } else {
+      pendingTotal += Number(exp.amount);
+      pendingCount += 1;
+      if (isOverdue(exp, today)) overdueCount += 1;
+    }
+  });
+
+  return { paidTotal, pendingTotal, pendingCount, overdueCount };
+};
