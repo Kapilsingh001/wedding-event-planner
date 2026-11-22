@@ -20,8 +20,69 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Dark or light mode is set before anything is drawn, so the loading
+         screen has the right colours. It follows the same rule as src/theme.js:
+         the saved choice first, otherwise the setting of the computer. -->
+    <script>
+      (function () {
+        var theme = null
+        try {
+          theme = localStorage.getItem('theme')
+        } catch (e) {
+          // localStorage can be blocked; use the setting of the computer
+        }
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.setAttribute('data-theme', theme)
+      })()
+    </script>
+
+    <!-- Styles of the loading screen. A small local file, linked here and not
+         from React, so the loading screen is styled from the very first moment. -->
+    <link rel="stylesheet" href="/splash.css" />
+
+    <!-- The fonts come from the internet, so they must not hold the page back.
+         media="print" lets the browser load them in the background, and onload
+         switches them on when they have arrived. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
   </head>
   <body>
+    <!-- Full-screen loading screen. It is plain HTML and CSS, so it shows
+         before React is ready. src/splash.js fades it out when the page is drawn. -->
+    <div id="splash" role="status" aria-label="Loading Wedding Planner">
+      <div class="splash-inner">
+        <div class="splash-logo">
+          <span class="splash-ring"></span>
+          <span class="splash-ring splash-ring-2"></span>
+
+          <!-- the gem from the navbar logo, drawn line by line -->
+          <svg class="splash-gem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path class="splash-gem-fill" d="M6 3h12l4 6-10 13L2 9Z" />
+            <path class="splash-line" pathLength="1" d="M6 3h12l4 6-10 13L2 9Z" />
+            <path class="splash-line splash-line-2" pathLength="1" d="M11 3 8 9l4 13 4-13-3-6" />
+            <path class="splash-line splash-line-3" pathLength="1" d="M2 9h20" />
+          </svg>
+
+          <svg class="splash-spark splash-spark-1" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
+          <svg class="splash-spark splash-spark-2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
+          <svg class="splash-spark splash-spark-3" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
+        </div>
+
+        <p class="splash-name">Wedding Planner</p>
+        <p class="splash-tag">Plan your perfect day</p>
+        <div class="splash-bar"><span></span></div>
+      </div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
