@@ -252,12 +252,27 @@
 }
 
 .guests-table tbody tr:hover {
-  background-color: #fdf6f7;
+  background-color: var(--soft);
 }
 
 .guests-name-cell strong {
   color: var(--text-dark);
   font-weight: 600;
+}
+
+.guests-name-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.guests-invited-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 
 .guests-phone-link {
@@ -293,6 +308,18 @@
   border: 1px solid #bfdbfe;
 }
 
+[data-theme='dark'] .guests-side-bride {
+  background: #3B1D28;
+  color: #F9A8D4;
+  border-color: #5D263C;
+}
+
+[data-theme='dark'] .guests-side-groom {
+  background: #1E293B;
+  color: #93C5FD;
+  border-color: #334155;
+}
+
 .guests-rsvp-select {
   padding: 6px 12px;
   border-radius: 8px;
@@ -322,25 +349,44 @@
 
 .guests-actions-col {
   text-align: right;
-  width: 100px;
+  width: 170px;
+  white-space: nowrap;
+}
+
+.guests-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.guests-action-invite-btn {
+  color: var(--pink-dark);
+  font-weight: 600;
 }
 
 .guests-delete-btn {
   background: transparent;
-  color: var(--pink-dark);
-  border: 1px solid var(--pink-light);
-  padding: 6px 12px;
-  border-radius: 6px;
+  color: #c93f59;
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
   transition: all 0.2s;
 }
 
 .guests-delete-btn:hover {
-  background: var(--pink-light);
-  color: var(--pink-deeper);
-  border-color: var(--soft);
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+[data-theme='dark'] .guests-delete-btn:hover {
+  background: #3D1F22;
+  color: #FF9B9B;
+  border-color: #5A2A2E;
 }
 
 /* Status & Empty States */
@@ -376,6 +422,116 @@
   background-color: var(--pink-light);
   border-color: var(--soft);
   font-weight: 500;
+}
+
+/* ---------- Digital Invitation Card Styles ---------- */
+.guests-invite-card {
+  background: var(--surface);
+  border: 2px dashed var(--soft);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin: 16px 0;
+  box-shadow: var(--shadow);
+}
+
+.guests-invite-card-inner {
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 4px);
+  padding: 24px 20px;
+  text-align: center;
+  background: linear-gradient(180deg, var(--pink-light) 0%, var(--surface) 100%);
+}
+
+.guests-invite-eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--pink-dark);
+  margin-bottom: 8px;
+}
+
+.guests-invite-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  line-height: 1.25;
+}
+
+.guests-invite-type {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pink-dark);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2px 12px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.guests-invite-divider {
+  width: 48px;
+  height: 2px;
+  background: var(--pink-dark);
+  opacity: 0.6;
+  margin: 12px auto;
+  border-radius: 2px;
+}
+
+.guests-invite-guest {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.guests-invite-text {
+  font-size: 13px;
+  color: var(--text-gray);
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.guests-invite-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.guests-invite-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--text-dark);
+}
+
+.guests-invite-detail-item svg {
+  color: var(--pink-dark);
+  flex-shrink: 0;
+}
+
+.guests-invite-host {
+  font-size: 13px;
+  color: var(--text-gray);
+  margin-top: 12px;
+  line-height: 1.4;
+}
+
+.guests-invite-host span {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 14px;
 }
 
 /* Responsive adjustments */
@@ -423,6 +579,24 @@
   .guests-table th,
   .guests-table td {
     padding: 10px 12px;
+  }
+
+  .guests-invite-card-inner {
+    padding: 18px 14px;
+  }
+
+  .guests-invite-title {
+    font-size: 21px;
+  }
+
+  .guests-actions-col {
+    width: auto;
+  }
+
+  .guests-row-actions {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
   }
 }
 

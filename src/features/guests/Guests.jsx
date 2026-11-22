@@ -7,6 +7,7 @@ import { getUser } from '../auth/auth.js';
 import { guestSchema } from './guestSchema.js';
 import { countByRsvp } from './guestUtils.js';
 import Dropdown from '../../components/Dropdown.jsx';
+import InviteModal from './InviteModal.jsx';
 import './Guests.css';
 
 const SIDE_OPTIONS = [
@@ -23,12 +24,14 @@ const FILTER_OPTIONS = [{ value: 'All', label: 'All RSVPs' }, ...RSVP_OPTIONS];
 export default function Guests() {
   const reduxUser = useSelector((state) => state.auth?.user);
   const user = reduxUser || getUser();
+  const hostName = user?.name || 'Host';
 
   const [guests, setGuests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [selectedGuestForInvite, setSelectedGuestForInvite] = useState(null);
 
   // Filter & Search state
   const [searchTerm, setSearchTerm] = useState('');
@@ -131,6 +134,16 @@ export default function Guests() {
       setGuests((prev) => prev.filter((g) => g.id !== guestId));
     } catch {
       alert('Could not delete guest. Please check if JSON Server is running.');
+    }
+  };
+
+  // Callback when a guest is invited through the modal
+  const handleGuestInvited = (updatedGuest) => {
+    setGuests((prev) =>
+      prev.map((g) => (g.id === updatedGuest.id ? { ...g, ...updatedGuest, invited: true } : g))
+    );
+    if (selectedGuestForInvite && selectedGuestForInvite.id === updatedGuest.id) {
+      setSelectedGuestForInvite((prev) => ({ ...prev, ...updatedGuest, invited: true }));
     }
   };
 
@@ -331,7 +344,14 @@ export default function Guests() {
                 {displayedGuests.map((guest) => (
                   <tr key={guest.id}>
                     <td className="guests-name-cell">
-                      <strong>{guest.name}</strong>
+                      <div className="guests-name-container">
+                        <strong>{guest.name}</strong>
+                        {guest.invited === true && (
+                          <span className="ui-badge guests-invited-tag">
+                            Invited
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="guests-phone-cell">
                       {guest.phone ? (
@@ -358,15 +378,25 @@ export default function Guests() {
                       />
                     </td>
                     <td className="guests-actions-col">
-                      <button
-                        type="button"
-                        className="guests-delete-btn"
-                        onClick={() => handleDelete(guest.id, guest.name)}
-                        title={`Delete ${guest.name}`}
-                        aria-label={`Delete ${guest.name}`}
-                      >
-                        Delete
-                      </button>
+                      <div className="guests-row-actions">
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-xs guests-action-invite-btn"
+                          onClick={() => setSelectedGuestForInvite(guest)}
+                          title={`Invite ${guest.name}`}
+                        >
+                          Invite
+                        </button>
+                        <button
+                          type="button"
+                          className="guests-delete-btn"
+                          onClick={() => handleDelete(guest.id, guest.name)}
+                          title={`Delete ${guest.name}`}
+                          aria-label={`Delete ${guest.name}`}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -375,6 +405,16 @@ export default function Guests() {
           </div>
         )}
       </section>
+
+      {/* Digital Invitation Modal */}
+      {selectedGuestForInvite && (
+        <InviteModal
+          guest={selectedGuestForInvite}
+          hostName={hostName}
+          onClose={() => setSelectedGuestForInvite(null)}
+          onInvited={handleGuestInvited}
+        />
+      )}
     </div>
   );
 }
