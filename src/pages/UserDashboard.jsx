@@ -6,7 +6,9 @@ import { getShortlist } from '../features/vendors/shortlist'
 import Icon from '../components/Icons.jsx'
 import {
   summarizeBudget, summarizeGuests, summarizeTasks, getNextEvent, daysUntil, getUpcomingEvents, getSetupSteps, getNextStep,
+  getMyExpenses, getTopCategories, getRsvpShares, getMyBookings,
 } from './dashboardUtils'
+import { getPaymentSummary } from '../features/planning/budgetUtils'
 import { getDayLabel } from './timelineUtils'
 import { getDueInfo } from './tasksUtils'
 import './UserDashboard.css'
@@ -37,8 +39,10 @@ function UserDashboard() {
       api.get('/guests'),
       api.get('/tasks'),
       api.get('/vendors'),
+      // bookings are extra: if they cannot be loaded, the dashboard still works
+      api.get('/bookings').catch(() => ({ data: [] })),
     ])
-      .then(([events, expenses, guests, tasks, vendors]) => {
+      .then(([events, expenses, guests, tasks, vendors, bookings]) => {
         const isMine = (item) => String(item.userId) === String(user.id)
         const shortlist = getShortlist()
         setData({
@@ -47,6 +51,7 @@ function UserDashboard() {
           guests: guests.data.filter(isMine),
           tasks: tasks.data.filter(isMine),
           shortlisted: vendors.data.filter((vendor) => shortlist.includes(String(vendor.id))),
+          bookings: getMyBookings(bookings.data, user.id),
         })
       })
       .catch(() => setError('Could not load your dashboard. Is JSON Server running on port 3001?'))
@@ -80,6 +85,12 @@ function UserDashboard() {
   const steps = getSetupSteps(data)
   const stepsDone = steps.filter((step) => step.done).length
   const nextStep = getNextStep(steps)
+
+  // only this user's expenses, for "Where the money goes" and the payments
+  const myExpenses = getMyExpenses(data.events, data.expenses)
+  const topCategories = getTopCategories(myExpenses)
+  const payments = getPaymentSummary(myExpenses, today)
+  const rsvp = getRsvpShares(guests)
 
   const upcomingTasks = data.tasks
     .filter((task) => !task.done)
@@ -193,8 +204,15 @@ function UserDashboard() {
             <>
               <span className="dash-stat-number">{guests.attending}<span>/{guests.total}</span></span>
               <span className="dash-stat-note">attending</span>
-              <span className="dash-stat-note">
-                {guests.pending} pending{guests.declined > 0 ? ` · ${guests.declined} declined` : ''}
+              {/* one bar in three colours: attending, waiting for an answer, declined */}
+              <span className="dash-bar dash-rsvp-bar" aria-hidden="true">
+                <span className="dash-rsvp-yes" style={{ width: `${rsvp.attending}%` }} />
+                <span className="dash-rsvp-wait" style={{ width: `${rsvp.pending}%` }} />
+                <span className="dash-rsvp-no" style={{ width: `${rsvp.declined}%` }} />
+              </span>
+              <span className="dash-stat-note dash-rsvp-key">
+                <i className="dash-key dash-rsvp-wait" />{guests.pending} pending
+                <i className="dash-key dash-rsvp-no" />{guests.declined} declined
               </span>
             </>
           )}
@@ -237,44 +255,79 @@ function UserDashboard() {
 
       {/* ---------- 4. what is coming: ceremonies on the left, tasks and vendors on the right ---------- */}
       <div className="dash-grid">
-        <section className="dash-panel" aria-labelledby="dash-events-title">
-          <div className="dash-panel-head">
-            <h2 id="dash-events-title">Upcoming ceremonies</h2>
-            <Link to="/timeline">Timeline <Icon name="arrow" size={15} /></Link>
-          </div>
-          {upcomingEvents.length === 0 ? (
-            <p className="dash-empty">Nothing planned yet. <Link to="/events">Plan a ceremony</Link></p>
-          ) : (
-            <ul className="dash-events">
-              {upcomingEvents.map((event) => {
-                const date = toDate(event.date)
-                const spent = spentOn(event.id)
-                const percent = Number(event.budget) > 0 ? Math.round((spent / Number(event.budget)) * 100) : 0
-                return (
-                  <li key={event.id}>
-                    <div className="dash-date" aria-hidden="true">
-                      <strong>{date.getDate()}</strong>
-                      <span>{date.toLocaleDateString('en-IN', { month: 'short' })}</span>
-                    </div>
-                    <div className="dash-event-body">
-                      <div className="dash-event-top">
-                        <strong>{event.title}</strong>
-                        <span className="dash-chip">{getDayLabel(daysUntil(event.date, today))}</span>
+        <div className="dash-side">
+          <section className="dash-panel" aria-labelledby="dash-events-title">
+            <div className="dash-panel-head">
+              <h2 id="dash-events-title">Upcoming ceremonies</h2>
+              <Link to="/timeline">Timeline <Icon name="arrow" size={15} /></Link>
+            </div>
+            {upcomingEvents.length === 0 ? (
+              <p className="dash-empty">Nothing planned yet. <Link to="/events">Plan a ceremony</Link></p>
+            ) : (
+              <ul className="dash-events">
+                {upcomingEvents.map((event) => {
+                  const date = toDate(event.date)
+                  const spent = spentOn(event.id)
+                  const percent = Number(event.budget) > 0 ? Math.round((spent / Number(event.budget)) * 100) : 0
+                  return (
+                    <li key={event.id}>
+                      <div className="dash-date" aria-hidden="true">
+                        <strong>{date.getDate()}</strong>
+                        <span>{date.toLocaleDateString('en-IN', { month: 'short' })}</span>
                       </div>
-                      <span className="dash-event-place">{event.venue || event.type}</span>
-                      <div className="dash-event-money">
-                        <span className="dash-bar">
-                          <span className={percent > 100 ? 'dash-bar-fill over' : 'dash-bar-fill'} style={{ width: `${Math.min(percent, 100)}%` }} />
-                        </span>
-                        <small className={percent > 100 ? 'dash-over' : ''}>{formatMoney(spent)} of {formatMoney(event.budget)}</small>
+                      <div className="dash-event-body">
+                        <div className="dash-event-top">
+                          <strong>{event.title}</strong>
+                          <span className="dash-chip">{getDayLabel(daysUntil(event.date, today))}</span>
+                        </div>
+                        <span className="dash-event-place">{event.venue || event.type}</span>
+                        <div className="dash-event-money">
+                          <span className="dash-bar">
+                            <span className={percent > 100 ? 'dash-bar-fill over' : 'dash-bar-fill'} style={{ width: `${Math.min(percent, 100)}%` }} />
+                          </span>
+                          <small className={percent > 100 ? 'dash-over' : ''}>{formatMoney(spent)} of {formatMoney(event.budget)}</small>
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </section>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
+
+          {/* ---------- where the money goes: biggest categories and the payments ---------- */}
+          <section className="dash-panel" aria-labelledby="dash-money-title">
+            <div className="dash-panel-head">
+              <h2 id="dash-money-title">Where the money goes</h2>
+              <Link to="/events">Budget <Icon name="arrow" size={15} /></Link>
+            </div>
+            {topCategories.length === 0 ? (
+              <p className="dash-empty">No expenses yet. <Link to="/events">Add an expense</Link></p>
+            ) : (
+              <>
+                <ul className="dash-cats">
+                  {topCategories.map((item) => (
+                    <li key={item.category}>
+                      <div className="dash-cat-top">
+                        <span>{item.category}</span>
+                        <strong>{formatMoney(item.amount)}</strong>
+                      </div>
+                      <span className="dash-bar">
+                        <span className="dash-bar-fill" style={{ width: `${item.share}%` }} />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {/* one short line about the payments */}
+                <p className="dash-pay">
+                  Paid <strong className="dash-pay-paid">{formatMoney(payments.paidTotal)}</strong>
+                  {' · '}Still to pay <strong>{formatMoney(payments.pendingTotal)}</strong>
+                  {payments.overdueCount > 0 && <> · <strong className="dash-over">{payments.overdueCount} overdue</strong></>}
+                </p>
+              </>
+            )}
+          </section>
+        </div>
 
         <div className="dash-side">
           <section className="dash-panel" aria-labelledby="dash-tasks-title">
@@ -296,6 +349,32 @@ function UserDashboard() {
                     </li>
                   )
                 })}
+              </ul>
+            )}
+          </section>
+
+          {/* ---------- the user's vendor booking requests ---------- */}
+          <section className="dash-panel" aria-labelledby="dash-bookings-title">
+            <div className="dash-panel-head">
+              <h2 id="dash-bookings-title">Vendor bookings</h2>
+              <Link to="/vendors">Vendors <Icon name="arrow" size={15} /></Link>
+            </div>
+            {data.bookings.length === 0 ? (
+              <p className="dash-empty">No booking requests yet. <Link to="/vendors">Book a vendor</Link></p>
+            ) : (
+              <ul className="dash-rows">
+                {data.bookings.slice(0, 3).map((booking) => (
+                  <li key={booking.id}>
+                    <Link to={`/vendors/${booking.vendorId}`} className="dash-row-title">
+                      <strong>{booking.vendorName}</strong>
+                      <small>
+                        {booking.category}
+                        {booking.eventDate && ` · ${toDate(booking.eventDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
+                      </small>
+                    </Link>
+                    <span className="dash-status">{booking.status}</span>
+                  </li>
+                ))}
               </ul>
             )}
           </section>
