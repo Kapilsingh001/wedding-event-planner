@@ -64,3 +64,38 @@ export function getSetupSteps({ events, guests, tasks, shortlisted }) {
 export function getNextStep(steps) {
   return steps.find((step) => !step.done) || null
 }
+
+// Only the expenses that belong to these events (the user's own events)
+export function getMyExpenses(events, expenses) {
+  const eventIds = events.map((event) => event.id)
+  return expenses.filter((expense) => eventIds.includes(expense.eventId))
+}
+
+// "Where the money goes": the categories with the most spending, biggest first.
+// share = this category's part of all spending, in percent (for the bar width).
+export function getTopCategories(expenses, limit = 4) {
+  const totals = {}
+  expenses.forEach((expense) => {
+    const category = expense.category || 'Others'
+    totals[category] = (totals[category] || 0) + Number(expense.amount || 0)
+  })
+  const all = Object.values(totals).reduce((sum, amount) => sum + amount, 0)
+  return Object.entries(totals)
+    .map(([category, amount]) => ({ category, amount, share: all === 0 ? 0 : Math.round((amount / all) * 100) }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, limit)
+}
+
+// The guests' answers as parts of 100, for the coloured bar on the Guests card
+export function getRsvpShares({ total, attending, pending, declined }) {
+  if (total === 0) return { attending: 0, pending: 0, declined: 0 }
+  const part = (count) => Math.round((count / total) * 100)
+  return { attending: part(attending), pending: part(pending), declined: part(declined) }
+}
+
+// The user's booking requests, the soonest event date first
+export function getMyBookings(bookings, userId) {
+  return bookings
+    .filter((booking) => String(booking.userId) === String(userId))
+    .sort((a, b) => (a.eventDate || '').localeCompare(b.eventDate || ''))
+}

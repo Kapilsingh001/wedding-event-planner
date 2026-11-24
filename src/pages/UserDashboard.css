@@ -683,3 +683,108 @@ a.dash-row-title:hover strong {
     flex-wrap: wrap;
   }
 }
+
+/* ---------- Guests card: one bar in three colours ---------- */
+.dash-rsvp-bar {
+  display: flex;
+  overflow: hidden;
+}
+
+.dash-rsvp-bar span {
+  height: 100%;
+}
+
+.dash-rsvp-yes {
+  background: #2F9E6B;
+}
+
+.dash-rsvp-wait {
+  background: #E5A93B;
+}
+
+.dash-rsvp-no {
+  background: #B9AAB0;
+}
+
+/* the small coloured squares in "2 pending · 1 declined" */
+.dash-rsvp-key {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+}
+
+.dash-key {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+
+.dash-key + .dash-key,
+.dash-rsvp-key .dash-key:not(:first-child) {
+  margin-left: 6px;
+}
+
+/* ---------- Where the money goes ---------- */
+.dash-cats {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dash-cat-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  font-size: 14.5px;
+  color: var(--text-dark);
+}
+
+.dash-cat-top strong {
+  font-weight: 600;
+}
+
+/* the one line about the payments, under the bars */
+.dash-pay {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-gray);
+}
+
+.dash-pay strong {
+  color: var(--text-dark);
+}
+
+.dash-pay .dash-pay-paid {
+  color: #2F9E6B;
+}
+
+[data-theme='dark'] .dash-pay .dash-pay-paid,
+[data-theme='dark'] .dash-rsvp-yes {
+  color: #5BC892;
+}
+
+[data-theme='dark'] .dash-rsvp-yes {
+  background: #46B580;
+}
+
+/* ---------- Vendor bookings: the status badge ---------- */
+.dash-status {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9A6A12;
+  background: #FCEFD6;
+  border-radius: 999px;
+}
+
+[data-theme='dark'] .dash-status {
+  color: #F1C56E;
+  background: #3A2E1A;
+}
