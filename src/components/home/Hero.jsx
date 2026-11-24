@@ -18,6 +18,8 @@ function Hero() {
       <div className="container hero-inner">
 
         <div className="hero-text">
+          {/* the name of the site, in script letters (style: .brand-script in ui.css) */}
+          <p className="hero-brand brand-script">Kalyanam</p>
           <p className="eyebrow">Wedding &amp; Event Planning Platform</p>
           <h1>
             Plan Your Dream Wedding <span>Without the Planning Chaos</span>

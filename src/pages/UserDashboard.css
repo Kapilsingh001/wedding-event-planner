@@ -42,6 +42,23 @@
   }
 }
 
+/* "Kalyanam" in script letters with "Your wedding dashboard" next to it */
+.dash-brand {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 2px;
+}
+
+.dash-brand .brand-script {
+  font-size: 46px;
+}
+
+.dash-brand .dash-eyebrow {
+  margin-bottom: 0;
+}
+
 .dash-eyebrow {
   margin-bottom: 6px;
   font-size: 13px;

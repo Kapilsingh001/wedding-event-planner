@@ -96,7 +96,11 @@ function UserDashboard() {
       <header className="dash-hero">
         <div className="dash-hero-photo" aria-hidden="true" />
         <div className="dash-hero-text">
-          <p className="dash-eyebrow">Your wedding dashboard</p>
+          {/* the name of the site, then what this page is */}
+          <p className="dash-brand">
+            <span className="brand-script">Kalyanam</span>
+            <span className="dash-eyebrow">Your wedding dashboard</span>
+          </p>
           <h1>Welcome back, {firstName}</h1>
           {nextEvent ? (
             <ul className="dash-facts" aria-label="Your next ceremony">

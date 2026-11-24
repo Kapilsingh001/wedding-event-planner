@@ -24,7 +24,7 @@
   overflow: hidden;
   background: radial-gradient(circle at 50% 42%, var(--splash-bg-1) 0%, var(--splash-bg-2) 100%);
   opacity: 1;
-  transition: opacity 0.5s ease, visibility 0.5s;
+  transition: opacity 0.35s ease, visibility 0.35s;
 }
 
 [data-theme='dark'] #splash {
@@ -109,7 +109,7 @@
   border-radius: 50%;
   background: radial-gradient(circle, var(--splash-glow) 0%, transparent 66%);
   opacity: 0;
-  animation: splash-glow 1.4s ease-out 0.3s forwards;
+  animation: splash-glow 0.7s ease-out 0.15s forwards;
 }
 
 /* two thin rings that grow and fade behind the logo */
@@ -123,11 +123,11 @@
   border: 2px solid var(--splash-pink);
   border-radius: 50%;
   opacity: 0;
-  animation: splash-ring 2.4s ease-out 1.1s infinite;
+  animation: splash-ring 2.4s ease-out 0.55s infinite;
 }
 
 .splash-ring-2 {
-  animation-delay: 2.3s;
+  animation-delay: 1.15s;
 }
 
 /* the logo and its shine move up and down together */
@@ -135,7 +135,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  animation: splash-float 3s ease-in-out 1.5s infinite;
+  animation: splash-float 3s ease-in-out 0.75s infinite;
 }
 
 /* First the outline of the logo is drawn. The lines and their animation are
@@ -155,7 +155,7 @@
   height: 100%;
   object-fit: contain;
   opacity: 0;
-  animation: splash-colour 0.8s ease-out 1.45s forwards;
+  animation: splash-colour 0.4s ease-out 0.75s forwards;
 }
 
 /* A band of light that sweeps across the logo once. The mask is the logo
@@ -170,7 +170,7 @@
   -webkit-mask: url('/logo.webp') center / contain no-repeat;
   mask: url('/logo.webp') center / contain no-repeat;
   opacity: 0;
-  animation: splash-shine 1s ease-in-out 2.3s forwards;
+  animation: splash-shine 0.6s ease-in-out 1.1s forwards;
 }
 
 /* small gold sparkles around the logo */
@@ -187,7 +187,7 @@
 .splash-spark-1 {
   top: -4px;
   left: 30px;
-  animation-delay: 2.1s;
+  animation-delay: 1.05s;
 }
 
 .splash-spark-2 {
@@ -195,7 +195,7 @@
   bottom: 30px;
   width: 15px;
   height: 15px;
-  animation-delay: 2.4s;
+  animation-delay: 1.2s;
 }
 
 .splash-spark-3 {
@@ -203,7 +203,7 @@
   left: 4px;
   width: 12px;
   height: 12px;
-  animation-delay: 2.7s;
+  animation-delay: 1.35s;
 }
 
 /* ---------- the name, the line under it and the loading bar ---------- */
@@ -226,7 +226,7 @@
   text-transform: uppercase;
   color: var(--splash-muted);
   opacity: 0;
-  animation: splash-rise 0.6s ease-out 2.55s forwards;
+  animation: splash-rise 0.35s ease-out 1.25s forwards;
 }
 
 .splash-bar {
@@ -238,7 +238,7 @@
   border-radius: 999px;
   background: var(--splash-track);
   opacity: 0;
-  animation: splash-rise 0.5s ease-out 2.7s forwards;
+  animation: splash-rise 0.3s ease-out 0.3s forwards;
 }
 
 /* the moving part of the loading bar */
@@ -250,7 +250,7 @@
   width: 40%;
   border-radius: inherit;
   background: var(--splash-pink);
-  animation: splash-slide 1.2s ease-in-out 2.7s infinite;
+  animation: splash-slide 1s ease-in-out 0.3s infinite;
 }
 
 /* ---------- the movements ---------- */
