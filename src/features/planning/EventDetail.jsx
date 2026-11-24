@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import AddExpenseForm from "./AddExpenseForm";
 import CreateEventForm from "./CreateEventForm";
+import ConfirmDialog from "./ConfirmDialog";
 import BudgetChart from "./BudgetChart";
 import BudgetBarChart from "./BudgetBarChart";
 import {
@@ -32,6 +33,7 @@ export default function EventDetail({ eventId, onBack }) {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [showEditEventForm, setShowEditEventForm] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState(null); // { type: "event" } or { type: "expense", id }
   const [plannedInputs, setPlannedInputs] = useState(toInputs(null));
   const [savingPlan, setSavingPlan] = useState(false);
   const [planMessage, setPlanMessage] = useState(null); // { type: "success" | "error", text }
@@ -74,25 +76,25 @@ export default function EventDetail({ eventId, onBack }) {
     setShowEditEventForm(false);
   };
 
-  const handleDeleteEvent = async () => {
-    if (!window.confirm("Delete this event and all its expenses?")) return;
+  // Runs after the user clicks the red Delete button in the popup
+  const handleConfirmDelete = async () => {
+    const target = confirmTarget;
+    setConfirmTarget(null);
     setActionError("");
     try {
-      await api.delete(`/events/${event.id}`, { params: { _dependent: "expenses" } });
-      onBack();
+      if (target.type === "event") {
+        await api.delete(`/events/${event.id}`, { params: { _dependent: "expenses" } });
+        onBack();
+      } else {
+        await api.delete(`/expenses/${target.id}`);
+        setExpenses((prev) => prev.filter((e) => e.id !== target.id));
+      }
     } catch (err) {
-      setActionError("Could not delete the event. Please try again.");
-    }
-  };
-
-  const handleDeleteExpense = async (expenseId) => {
-    if (!window.confirm("Delete this expense?")) return;
-    setActionError("");
-    try {
-      await api.delete(`/expenses/${expenseId}`);
-      setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
-    } catch (err) {
-      setActionError("Could not delete the expense. Please try again.");
+      setActionError(
+        target.type === "event"
+          ? "Could not delete the event. Please try again."
+          : "Could not delete the expense. Please try again."
+      );
     }
   };
 
@@ -205,7 +207,7 @@ export default function EventDetail({ eventId, onBack }) {
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             <button onClick={() => setShowEditEventForm(true)} style={styles.btnOutline}>Edit</button>
-            <button onClick={handleDeleteEvent} style={styles.btnDanger}>Delete</button>
+            <button onClick={() => setConfirmTarget({ type: "event" })} style={styles.btnDanger}>Delete</button>
           </div>
         </div>
         <p style={{ color: "#9f6b7a", margin: "2px 0" }}>{formatDate(event.date)}</p>
@@ -328,7 +330,7 @@ export default function EventDetail({ eventId, onBack }) {
                       <button onClick={() => handleMarkPaid(exp.id)} style={styles.btnTinyPaid}>Mark paid</button>
                     )}
                     <button onClick={() => setEditingExpense(exp)} style={styles.btnTinyOutline}>Edit</button>
-                    <button onClick={() => handleDeleteExpense(exp.id)} style={styles.btnTinyDanger}>Delete</button>
+                    <button onClick={() => setConfirmTarget({ type: "expense", id: exp.id })} style={styles.btnTinyDanger}>Delete</button>
                   </td>
                 </tr>
               ))}
@@ -355,6 +357,20 @@ export default function EventDetail({ eventId, onBack }) {
           event={event}
           onClose={() => setShowEditEventForm(false)}
           onSaved={handleEventSaved}
+        />
+      )}
+
+      {confirmTarget && (
+        <ConfirmDialog
+          title={confirmTarget.type === "event" ? "Delete event?" : "Delete expense?"}
+          message={
+            confirmTarget.type === "event"
+              ? "This will delete the event and all its expenses. This cannot be undone."
+              : "This expense will be removed. This cannot be undone."
+          }
+          confirmLabel="Delete"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setConfirmTarget(null)}
         />
       )}
     </div>
