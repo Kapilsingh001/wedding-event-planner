@@ -31,9 +31,9 @@ function Navbar() {
   return (
     <header className="navbar">
       <div className="container navbar-inner">
-        <Link to="/" className="navbar-logo" onClick={() => setOpen(false)}>
+        {/* Only the logo here. The name "Kalyanam" is written on the homepage and the dashboard. */}
+        <Link to="/" className="navbar-logo" aria-label="Kalyanam, go to the home page" onClick={() => setOpen(false)}>
           <img src="/logo-small.webp" alt="" width="144" height="131" />
-          <span>Kalyanam</span>
         </Link>
 
         <button

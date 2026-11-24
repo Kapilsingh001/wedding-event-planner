@@ -64,6 +64,12 @@
   gap: 56px;
 }
 
+/* "Kalyanam" above the heading; the letters and colours come from .brand-script */
+.hero-brand {
+  margin-bottom: 4px;
+  font-size: clamp(54px, 6vw, 78px);
+}
+
 .hero-text h1 {
   font-size: clamp(34px, 4.2vw, 54px);
   margin-bottom: 16px;

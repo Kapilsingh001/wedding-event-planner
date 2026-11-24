@@ -5,9 +5,9 @@
 //   playSplashOnLogin  watches the login state and calls playSplash at each login
 
 // how long the loading screen stays, so the logo animation can be seen
-export const SPLASH_MIN_MS = 3300
+export const SPLASH_MIN_MS = 1700
 // how long the fade takes. It must match the transition in public/splash.css
-export const SPLASH_FADE_MS = 500
+export const SPLASH_FADE_MS = 350
 
 // a copy of the loading screen, kept so it can be shown again after it was removed
 let savedSplash = null
