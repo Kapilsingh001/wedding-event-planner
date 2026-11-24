@@ -1,0 +1,821 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import api from '../../services/api';
+import { getShortlist, toggleShortlist } from './shortlist';
+import { matchesPriceRange, getTotalPages, paginate } from './vendorUtils';
+import { getUser } from '../auth/auth';
+import MyBookings from './MyBookings';
+import Dropdown from '../../components/Dropdown.jsx';
+
+const PRICE_OPTIONS = [
+  { value: 'any', label: 'Any budget' },
+  { value: 'under50', label: 'Under ₹50,000' },
+  { value: '50to100', label: '₹50,000 - 1,00,000' },
+  { value: '100to200', label: '₹1,00,000 - 2,00,000' },
+  { value: 'above200', label: 'Above ₹2,00,000' },
+];
+const RATING_OPTIONS = [
+  { value: 'any', label: 'Any rating' },
+  { value: '4.5', label: '4.5+' },
+  { value: '4.7', label: '4.7+' },
+  { value: '4.9', label: '4.9+' },
+];
+const SORT_OPTIONS = [
+  { value: 'default', label: 'Sort: Featured' },
+  { value: 'rating-desc', label: 'Rating: High to low' },
+  { value: 'price-asc', label: 'Price: Low to high' },
+  { value: 'price-desc', label: 'Price: High to low' },
+];
+
+const VENDORS_PER_PAGE = 8;
+
+// Loads the display fonts once. Safe even if this component mounts more
+// than once — it just skips re-adding the link.
+function useThemeFonts() {
+  useEffect(() => {
+    if (document.getElementById('wedding-fonts')) return;
+    const link = document.createElement('link');
+    link.id = 'wedding-fonts';
+    link.rel = 'stylesheet';
+    link.href =
+      'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap';
+    document.head.appendChild(link);
+  }, []);
+}
+
+const CATEGORY_STYLES = {
+  Catering: { color: '#D97B3F', background: '#FBEADD' },
+  Photographer: { color: '#6C63A6', background: '#ECE9F7' },
+  Venue: { color: '#F43F65', background: '#FFE3E9' },
+  Decorator: { color: '#2E9E77', background: '#E1F5EC' },
+  Music: { color: '#C2447A', background: '#FBE4EF' },
+};
+const DEFAULT_CATEGORY_STYLE = { color: '#8B7A82', background: '#F3EBEE' };
+
+const PinIcon = () => (
+  <svg viewBox="0 0 24 24" width="12" height="12" style={{ fill: '#F43F65', flexShrink: 0 }}>
+    <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z" />
+  </svg>
+);
+const SearchIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" style={{ fill: '#F43F65' }}>
+    <path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42-1.39ZM11 18a7 7 0 1 1 7-7 7 7 0 0 1-7 7Z" />
+  </svg>
+);
+const HeartIcon = () => (
+  <svg viewBox="0 0 24 24" width="13" height="13" style={{ fill: '#F43F65' }}>
+    <path d="M12 21s-6.716-4.35-9.428-8.06C.86 10.42 1.2 6.9 4.1 5.2c2.2-1.28 4.9-.62 6.4 1.28 1.5-1.9 4.2-2.56 6.4-1.28 2.9 1.7 3.24 5.22 1.53 7.74C18.72 16.65 12 21 12 21Z" />
+  </svg>
+);
+// Heart used for the shortlist button: outline when not saved, filled when saved
+const ShortlistHeart = ({ filled, size = 16 }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    style={{ fill: filled ? '#F43F65' : 'none', stroke: '#F43F65', strokeWidth: 2 }}
+  >
+    <path d="M12 21s-6.716-4.35-9.428-8.06C.86 10.42 1.2 6.9 4.1 5.2c2.2-1.28 4.9-.62 6.4 1.28 1.5-1.9 4.2-2.56 6.4-1.28 2.9 1.7 3.24 5.22 1.53 7.74C18.72 16.65 12 21 12 21Z" />
+  </svg>
+);
+
+export default function Vendors() {
+  useThemeFonts();
+
+  const [vendors, setVendors] = useState([]);
+  const [allVendors, setAllVendors] = useState([]); // every vendor, used by the My Shortlist bar
+  const [cities, setCities] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [sortBy, setSortBy] = useState('default');
+
+  const [priceRange, setPriceRange] = useState('any');
+  const [minRating, setMinRating] = useState('any');
+  const [shortlist, setShortlist] = useState(() => getShortlist());
+  const [showShortlisted, setShowShortlisted] = useState(false);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const gridTopRef = useRef(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [hoveredCardId, setHoveredCardId] = useState(null);
+
+  // Booking requests of the logged-in user
+  const user = getUser();
+  const userId = user ? String(user.id) : null;
+  const [bookings, setBookings] = useState([]);
+  const [bookingError, setBookingError] = useState('');
+
+  // Dropdown options (loaded once)
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        const { data: citiesData } = await api.get('/cities');
+        setCities(citiesData);
+
+        const { data: categoriesData } = await api.get('/categories');
+        setCategories(categoriesData);
+      } catch (err) {
+        console.warn('Filter endpoints unavailable');
+      }
+    };
+
+    fetchFilterOptions();
+  }, []);
+
+  // All vendors (loaded once) so the My Shortlist bar always shows every saved vendor,
+  // even when a city or category filter is active
+  useEffect(() => {
+    const fetchAllVendors = async () => {
+      try {
+        const { data } = await api.get('/vendors');
+        setAllVendors(data);
+      } catch (err) {
+        console.warn('Could not load vendors for the shortlist bar');
+      }
+    };
+
+    fetchAllVendors();
+  }, []);
+
+  // Vendor list (reloads when city or category changes)
+  useEffect(() => {
+    const fetchVendors = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { data } = await api.get('/vendors', {
+          params: {
+            city: selectedCity || undefined,
+            category: selectedCategory || undefined,
+          },
+        });
+        setVendors(data);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch vendor data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVendors();
+  }, [selectedCity, selectedCategory]);
+
+  // Load all bookings once, then keep only this user's bookings
+  useEffect(() => {
+    if (!userId) {
+      setBookings([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const loadBookings = async () => {
+      try {
+        const { data } = await api.get('/bookings');
+        if (!cancelled) {
+          setBookings(data.filter((booking) => String(booking.userId) === userId));
+        }
+      } catch (err) {
+        console.warn('Could not load bookings');
+      }
+    };
+
+    loadBookings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // Go back to page 1 whenever any filter, sort or the shortlist toggle changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCity, selectedCategory, priceRange, minRating, sortBy, showShortlisted]);
+
+  // Name search + price range + minimum rating (+ shortlist toggle), all in JavaScript
+  let filteredVendors = vendors.filter(
+    (vendor) =>
+      vendor.name.toLowerCase().includes(searchTerm.toLowerCase().trim()) &&
+      matchesPriceRange(priceRange, vendor.price) &&
+      (minRating === 'any' || Number(vendor.rating) >= Number(minRating)) &&
+      (!showShortlisted || shortlist.includes(String(vendor.id)))
+  );
+
+  if (sortBy === 'rating-desc') {
+    filteredVendors = [...filteredVendors].sort((a, b) => b.rating - a.rating);
+  } else if (sortBy === 'price-asc') {
+    filteredVendors = [...filteredVendors].sort((a, b) => a.price - b.price);
+  } else if (sortBy === 'price-desc') {
+    filteredVendors = [...filteredVendors].sort((a, b) => b.price - a.price);
+  }
+
+  // Pagination maths
+  const totalItems = filteredVendors.length;
+  const totalPages = getTotalPages(totalItems, VENDORS_PER_PAGE);
+  const safePage = Math.min(currentPage, totalPages); // in case the list got shorter
+  const pageVendors = paginate(filteredVendors, safePage, VENDORS_PER_PAGE);
+  const showingFrom = totalItems === 0 ? 0 : (safePage - 1) * VENDORS_PER_PAGE + 1;
+  const showingTo = Math.min(safePage * VENDORS_PER_PAGE, totalItems);
+  const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
+
+  // My Shortlist bar data
+  const shortlistedVendors = allVendors.filter((vendor) => shortlist.includes(String(vendor.id)));
+  const shortlistTotal = shortlistedVendors.reduce((sum, vendor) => sum + Number(vendor.price), 0);
+
+  const goToPage = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    if (gridTopRef.current) {
+      gridTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedCity('');
+    setSelectedCategory('');
+    setSortBy('default');
+    setPriceRange('any');
+    setMinRating('any');
+    setShowShortlisted(false);
+    setCurrentPage(1);
+  };
+
+  // The card is a <Link>, so stop the click from opening the detail page
+  const handleToggleShortlist = (e, vendorId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShortlist(toggleShortlist(vendorId));
+  };
+
+  // Remove button on a My Shortlist chip
+  const handleRemoveFromShortlist = (vendorId) => {
+    setShortlist(toggleShortlist(vendorId));
+  };
+
+  // Cancel button in My booking requests: ask first, then DELETE /bookings/:id
+  const handleCancelBooking = async (booking) => {
+    if (!window.confirm('Cancel this booking request?')) return;
+
+    try {
+      await api.delete(`/bookings/${booking.id}`);
+      setBookings((prev) => prev.filter((item) => item.id !== booking.id));
+      setBookingError('');
+    } catch (err) {
+      setBookingError(err.message || 'Could not cancel the request. Please try again.');
+    }
+  };
+
+  // ---------- styles ----------
+
+  const pageStyle = {
+    backgroundColor: '#FFF7F8',
+    minHeight: '100vh',
+    fontFamily: "'Poppins', 'Segoe UI', sans-serif",
+    color: '#241B22',
+  };
+
+  const heroStyle = {
+    background: 'linear-gradient(135deg, #FFD1DC 0%, #FF8FA3 55%, #F43F65 100%)',
+    padding: '56px 24px 90px',
+    textAlign: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  };
+
+  const heroFlowerLeftStyle = { position: 'absolute', top: '18px', left: '28px', fontSize: '20px', opacity: 0.8 };
+  const heroFlowerRightStyle = { position: 'absolute', bottom: '24px', right: '30px', fontSize: '20px', opacity: 0.8 };
+
+  const badgeRowStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    padding: '7px 18px',
+    borderRadius: '30px',
+    marginBottom: '18px',
+    fontSize: '12.5px',
+    fontWeight: 600,
+    color: '#F43F65',
+    letterSpacing: '0.03em',
+  };
+
+  const titleStyle = {
+    fontFamily: "'Playfair Display', serif",
+    fontWeight: 700,
+    fontSize: 'clamp(30px, 5vw, 44px)',
+    margin: '0 0 12px',
+    color: '#241B22',
+    lineHeight: 1.2,
+  };
+
+  const subtitleStyle = {
+    fontSize: '15px',
+    color: '#5C4650',
+    maxWidth: '520px',
+    margin: '0 auto',
+    lineHeight: 1.6,
+  };
+
+  const containerStyle = { maxWidth: '1200px', margin: '0 auto', padding: '0 24px 80px' };
+
+  const controlsContainerStyle = {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '14px',
+    marginTop: '-52px',
+    marginBottom: '10px',
+    backgroundColor: '#FFFFFF',
+    padding: '20px',
+    borderRadius: '24px',
+    boxShadow: '0 22px 45px -20px rgba(244,63,101,0.35)',
+    position: 'relative',
+  };
+
+  const fieldWrapStyle = {
+    flex: '2 1 240px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '0 18px',
+    borderRadius: '30px',
+    border: '1px solid #FCE1E7',
+    backgroundColor: '#FFF7F8',
+  };
+
+  const inputStyle = {
+    flex: 1,
+    padding: '14px 0',
+    fontSize: '14.5px',
+    border: 'none',
+    outline: 'none',
+    backgroundColor: 'transparent',
+    fontFamily: "'Poppins', sans-serif",
+    color: '#241B22',
+  };
+
+  const filterWrapStyle = { flex: '1 1 170px', minWidth: 0 };
+
+  // options for the shared Dropdown component: { value, label }
+  const cityOptions = [{ value: '', label: 'All cities' }, ...cities.map((city) => ({ value: city.name, label: city.name }))];
+  const categoryOptions = [
+    { value: '', label: 'All categories' },
+    ...categories.map((cat) => ({ value: cat.name, label: cat.name })),
+  ];
+
+  const resultsRowStyle = {
+    display: 'flex',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    margin: '34px 4px 20px',
+    flexWrap: 'wrap',
+    gap: '10px',
+    scrollMarginTop: '90px',
+  };
+
+  const resultsHeadingStyle = {
+    fontFamily: "'Playfair Display', serif",
+    fontWeight: 700,
+    fontSize: '24px',
+    margin: 0,
+    color: '#241B22',
+  };
+  const resultsCountStyle = { fontSize: '13.5px', color: '#8B7A82' };
+
+  const rightControlsStyle = { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' };
+
+  const shortlistToggleStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '7px',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '13.5px',
+    fontWeight: 600,
+    padding: '8px 18px',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    border: showShortlisted ? '1px solid transparent' : '1px solid #F43F65',
+    background: showShortlisted ? 'linear-gradient(135deg, #FF8FA3, #F43F65)' : '#FFFFFF',
+    color: showShortlisted ? '#FFFFFF' : '#F43F65',
+  };
+
+  // My Shortlist bar
+  const shortlistBarStyle = {
+    backgroundColor: '#FFFFFF',
+    border: '1px solid #FCE1E7',
+    borderRadius: '20px',
+    padding: '18px 20px',
+    margin: '0 0 22px',
+    boxShadow: '0 12px 28px -20px rgba(244,63,101,0.4)',
+  };
+
+  const shortlistBarHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    gap: '8px',
+    marginBottom: '12px',
+  };
+
+  const shortlistBarTitleStyle = {
+    fontFamily: "'Playfair Display', serif",
+    fontWeight: 700,
+    fontSize: '18px',
+    color: '#241B22',
+  };
+
+  const shortlistTotalStyle = { fontSize: '13.5px', color: '#8B7A82' };
+  const shortlistTotalAmountStyle = {
+    fontFamily: "'Playfair Display', serif",
+    fontWeight: 700,
+    fontSize: '17px',
+    color: '#F43F65',
+  };
+
+  const chipRowStyle = { display: 'flex', flexWrap: 'wrap', gap: '10px' };
+
+  const chipStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    backgroundColor: '#FFE3E9',
+    borderRadius: '20px',
+    padding: '6px 8px 6px 14px',
+  };
+
+  const chipLinkStyle = {
+    fontSize: '13px',
+    fontWeight: 600,
+    color: '#241B22',
+    textDecoration: 'none',
+  };
+
+  const chipRemoveStyle = {
+    width: '22px',
+    height: '22px',
+    borderRadius: '50%',
+    border: 'none',
+    backgroundColor: '#FFFFFF',
+    color: '#F43F65',
+    fontSize: '14px',
+    fontWeight: 700,
+    lineHeight: 1,
+    cursor: 'pointer',
+    padding: 0,
+  };
+
+  const gridStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+    gap: '22px',
+  };
+
+  const getCardStyle = (id) => ({
+    backgroundColor: '#FFFFFF',
+    borderRadius: '22px',
+    border: '1px solid #FCE9EE',
+    padding: '22px',
+    textDecoration: 'none',
+    color: 'inherit',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    boxShadow: hoveredCardId === id ? '0 24px 40px -22px rgba(244,63,101,0.35)' : '0 8px 20px -14px rgba(36,27,34,0.12)',
+    transform: hoveredCardId === id ? 'translateY(-5px)' : 'translateY(0)',
+    transition: 'all 0.22s ease',
+  });
+
+  const cardHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' };
+  const cardHeaderRightStyle = { display: 'flex', alignItems: 'center', gap: '8px' };
+
+  const categoryPillStyle = (category) => ({
+    fontSize: '12px',
+    fontWeight: 600,
+    padding: '6px 14px',
+    borderRadius: '20px',
+    ...(CATEGORY_STYLES[category] || DEFAULT_CATEGORY_STYLE),
+  });
+
+  const ratingBadgeStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '13px',
+    fontWeight: 700,
+    color: '#F43F65',
+    backgroundColor: '#FFE3E9',
+    padding: '5px 10px',
+    borderRadius: '20px',
+  };
+
+  const heartButtonStyle = (saved) => ({
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    padding: 0,
+    border: '1px solid #FCE1E7',
+    backgroundColor: saved ? '#FFE3E9' : '#FFFFFF',
+  });
+
+  const cardTitleStyle = {
+    fontFamily: "'Playfair Display', serif",
+    fontWeight: 700,
+    fontSize: '19px',
+    margin: '0 0 10px',
+    lineHeight: 1.35,
+    color: '#241B22',
+  };
+  const cityRowStyle = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13.5px', color: '#8B7A82', margin: '0 0 20px' };
+
+  const cardFooterStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingTop: '16px',
+    borderTop: '1px dashed #FCE9EE',
+  };
+  const priceLabelStyle = { fontSize: '11px', letterSpacing: '0.06em', color: '#8B7A82' };
+  const priceStyle = { fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: '19px', color: '#F43F65' };
+
+  // Pagination
+  const paginationWrapStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '14px',
+    marginTop: '34px',
+  };
+
+  const showingTextStyle = { fontSize: '13.5px', color: '#8B7A82' };
+
+  const paginationRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '8px' };
+
+  const pageButtonStyle = (active, disabled) => ({
+    minWidth: '38px',
+    height: '38px',
+    padding: '0 16px',
+    borderRadius: '20px',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '13.5px',
+    fontWeight: 600,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.45 : 1,
+    border: active ? '1px solid transparent' : '1px solid #FCE1E7',
+    background: active ? 'linear-gradient(135deg, #FF8FA3, #F43F65)' : '#FFFFFF',
+    color: active ? '#FFFFFF' : '#F43F65',
+  });
+
+  const statusWrapStyle = { textAlign: 'center', padding: '70px 20px', color: '#8B7A82' };
+  const statusHeadingStyle = { fontFamily: "'Playfair Display', serif", fontSize: '22px', color: '#241B22', fontWeight: 700, margin: '0 0 8px' };
+  const resetButtonStyle = {
+    marginTop: '18px',
+    background: 'linear-gradient(135deg, #FF8FA3, #F43F65)',
+    color: '#FFFFFF',
+    border: 'none',
+    padding: '12px 28px',
+    borderRadius: '30px',
+    fontSize: '13.5px',
+    fontWeight: 600,
+    fontFamily: "'Poppins', sans-serif",
+    cursor: 'pointer',
+  };
+
+  return (
+    <div style={pageStyle}>
+      <div style={heroStyle}>
+        <span style={heroFlowerLeftStyle}>🌸</span>
+        <span style={heroFlowerRightStyle}>🌸</span>
+
+        <span style={badgeRowStyle}>
+          <HeartIcon /> Curated Across India
+        </span>
+        <h1 style={titleStyle}>
+          Find Vendors for Your<br />
+          Dream <span style={{ color: '#FFFFFF' }}>Wedding</span> 💍
+        </h1>
+        <p style={subtitleStyle}>
+          Browse top-rated caterers, photographers, venues, decorators and more — everything you need to plan the big day.
+        </p>
+      </div>
+
+      <div style={containerStyle}>
+        <div style={controlsContainerStyle}>
+          <div style={fieldWrapStyle}>
+            <SearchIcon />
+            <input
+              type="text"
+              placeholder="Search vendors by name…"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div style={filterWrapStyle}>
+            <Dropdown className="dropdown-pill" label="Filter by city" value={selectedCity} onChange={setSelectedCity} options={cityOptions} />
+          </div>
+
+          <div style={filterWrapStyle}>
+            <Dropdown className="dropdown-pill" label="Filter by category" value={selectedCategory} onChange={setSelectedCategory} options={categoryOptions} />
+          </div>
+
+          <div style={filterWrapStyle}>
+            <Dropdown className="dropdown-pill" label="Filter by budget" value={priceRange} onChange={setPriceRange} options={PRICE_OPTIONS} />
+          </div>
+
+          <div style={filterWrapStyle}>
+            <Dropdown className="dropdown-pill" label="Filter by rating" value={minRating} onChange={setMinRating} options={RATING_OPTIONS} />
+          </div>
+        </div>
+
+        <div style={resultsRowStyle} ref={gridTopRef}>
+          <div>
+            <h2 style={resultsHeadingStyle}>Our Vendors</h2>
+            <div style={resultsCountStyle}>
+              {!loading && !error &&
+                `${totalItems} ${totalItems === 1 ? 'vendor' : 'vendors'} found`}
+            </div>
+          </div>
+
+          <div style={rightControlsStyle}>
+            <button
+              type="button"
+              style={shortlistToggleStyle}
+              onClick={() => setShowShortlisted((prev) => !prev)}
+            >
+              <ShortlistHeart filled={showShortlisted} size={15} />
+              {showShortlisted ? 'Showing shortlisted only' : 'Show shortlisted only'}
+            </button>
+
+            <div style={{ minWidth: '210px' }}>
+              <Dropdown className="dropdown-pill vendors-sort" label="Sort vendors" value={sortBy} onChange={setSortBy} options={SORT_OPTIONS} />
+            </div>
+          </div>
+        </div>
+
+        {shortlistedVendors.length > 0 && (
+          <div style={shortlistBarStyle}>
+            <div style={shortlistBarHeaderStyle}>
+              <span style={shortlistBarTitleStyle}>My Shortlist ({shortlistedVendors.length})</span>
+              <span style={shortlistTotalStyle}>
+                Total starting price:{' '}
+                <span style={shortlistTotalAmountStyle}>₹{shortlistTotal.toLocaleString('en-IN')}</span>
+              </span>
+            </div>
+            <div style={chipRowStyle}>
+              {shortlistedVendors.map((vendor) => (
+                <span key={vendor.id} style={chipStyle}>
+                  <Link to={`/vendors/${vendor.id}`} style={chipLinkStyle}>
+                    {vendor.name}
+                  </Link>
+                  <button
+                    type="button"
+                    style={chipRemoveStyle}
+                    onClick={() => handleRemoveFromShortlist(vendor.id)}
+                    aria-label={`Remove ${vendor.name} from shortlist`}
+                    title="Remove from shortlist"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {bookingError && (
+          <div className="ui-alert ui-alert-error" role="alert" style={{ margin: '0 0 22px' }}>
+            {bookingError}
+          </div>
+        )}
+
+        {bookings.length > 0 && (
+          <div style={{ margin: '0 0 22px' }}>
+            <MyBookings bookings={bookings} onCancel={handleCancelBooking} />
+          </div>
+        )}
+
+        {loading && (
+          <div style={statusWrapStyle}>
+            <p style={statusHeadingStyle}>Loading vendors…</p>
+          </div>
+        )}
+
+        {error && (
+          <div style={statusWrapStyle}>
+            <h3 style={statusHeadingStyle}>Something went wrong</h3>
+            <p>{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && totalItems === 0 && (
+          <div style={statusWrapStyle}>
+            <h3 style={statusHeadingStyle}>No vendors match your search</h3>
+            <p>Try a different city, category, budget or rating, or clear your filters.</p>
+            <button style={resetButtonStyle} onClick={resetFilters}>Clear filters</button>
+          </div>
+        )}
+
+        {!loading && !error && totalItems > 0 && (
+          <>
+            <div style={gridStyle}>
+              {pageVendors.map((vendor) => {
+                const saved = shortlist.includes(String(vendor.id));
+                return (
+                  <Link
+                    key={vendor.id}
+                    to={`/vendors/${vendor.id}`}
+                    style={getCardStyle(vendor.id)}
+                    onMouseEnter={() => setHoveredCardId(vendor.id)}
+                    onMouseLeave={() => setHoveredCardId(null)}
+                  >
+                    <div>
+                      <div style={cardHeaderStyle}>
+                        <span style={categoryPillStyle(vendor.category)}>{vendor.category}</span>
+                        <div style={cardHeaderRightStyle}>
+                          <span style={ratingBadgeStyle}>
+                            <HeartIcon /> {Number(vendor.rating).toFixed(1)}
+                          </span>
+                          <button
+                            type="button"
+                            style={heartButtonStyle(saved)}
+                            onClick={(e) => handleToggleShortlist(e, vendor.id)}
+                            aria-label={saved ? 'Remove from shortlist' : 'Add to shortlist'}
+                            title={saved ? 'Remove from shortlist' : 'Add to shortlist'}
+                          >
+                            <ShortlistHeart filled={saved} />
+                          </button>
+                        </div>
+                      </div>
+                      <h3 style={cardTitleStyle}>{vendor.name}</h3>
+                      <div style={cityRowStyle}>
+                        <PinIcon /> {vendor.city}
+                      </div>
+                    </div>
+
+                    <div style={cardFooterStyle}>
+                      <span style={priceLabelStyle}>STARTING PRICE</span>
+                      <span style={priceStyle}>₹{Number(vendor.price).toLocaleString('en-IN')}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div style={paginationWrapStyle}>
+              <div style={showingTextStyle}>
+                Showing {showingFrom}-{showingTo} of {totalItems} {totalItems === 1 ? 'vendor' : 'vendors'}
+              </div>
+
+              {totalPages > 1 && (
+                <div style={paginationRowStyle}>
+                  <button
+                    type="button"
+                    style={pageButtonStyle(false, safePage === 1)}
+                    onClick={() => goToPage(safePage - 1)}
+                    disabled={safePage === 1}
+                  >
+                    Previous
+                  </button>
+
+                  {pageNumbers.map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      style={pageButtonStyle(pageNumber === safePage, false)}
+                      onClick={() => goToPage(pageNumber)}
+                      aria-current={pageNumber === safePage ? 'page' : undefined}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    style={pageButtonStyle(false, safePage === totalPages)}
+                    onClick={() => goToPage(safePage + 1)}
+                    disabled={safePage === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

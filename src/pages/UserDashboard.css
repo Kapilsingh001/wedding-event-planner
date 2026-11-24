@@ -1,0 +1,790 @@
+/* The dashboard a user sees after login. It has four blocks, top to bottom:
+   1. welcome banner   2. setup line   3. four numbers   4. what is coming.
+   Only the colour variables from index.css are used, so dark mode works too. */
+
+.dash {
+  padding-top: 32px;
+  padding-bottom: 72px;
+}
+
+/* Each block rises into place, one after the other. "backwards" keeps a block
+   hidden while it waits, and leaves no transform behind when it has finished. */
+.dash > * {
+  animation: dash-rise 0.5s ease backwards;
+}
+
+.dash > *:nth-child(2) {
+  animation-delay: 0.07s;
+}
+
+.dash > *:nth-child(3) {
+  animation-delay: 0.14s;
+}
+
+.dash > *:nth-child(4) {
+  animation-delay: 0.21s;
+}
+
+@keyframes dash-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash > * {
+    animation: none;
+  }
+}
+
+/* "Kalyanam" in script letters with "Your wedding dashboard" next to it */
+.dash-brand {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 2px;
+}
+
+.dash-brand .brand-script {
+  font-size: 46px;
+}
+
+.dash-brand .dash-eyebrow {
+  margin-bottom: 0;
+}
+
+.dash-eyebrow {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pink-dark);
+}
+
+.dash-sub,
+.dash-muted {
+  color: var(--text-gray);
+}
+
+.dash-error {
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #C0392B;
+  background: #FDECEA;
+}
+
+[data-theme='dark'] .dash-error {
+  color: #FF9B9B;
+  background: #3D1F22;
+}
+
+.dash-over {
+  font-weight: 600;
+  color: #C0392B !important;
+}
+
+[data-theme='dark'] .dash-over {
+  color: #FF8A80 !important;
+}
+
+/* ---------- 1. welcome banner: text on the left, photo fading in on the right ---------- */
+
+.dash-hero {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  min-height: 250px;
+  padding: 36px 44px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+.dash-hero-photo {
+  position: absolute;
+  inset: 0 0 0 42%;
+  background: url('/images/reception.jpg') center / cover no-repeat;
+}
+
+/* the photo fades into the card colour, so the text stays readable in both themes */
+.dash-hero-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--surface) 0%, transparent 75%);
+}
+
+.dash-hero-text {
+  position: relative;
+  max-width: 600px;
+}
+
+.dash-hero h1 {
+  font-size: 40px;
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+
+/* the next ceremony as three small pills: name, date, venue */
+.dash-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+}
+
+.dash-facts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  font-size: 14px;
+  color: var(--text-gray);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.dash-facts svg {
+  flex-shrink: 0;
+  color: var(--pink-dark);
+}
+
+.dash-facts strong {
+  color: var(--text-dark);
+}
+
+.dash-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.dash-hero-actions .btn-ghost {
+  background: var(--surface);
+}
+
+.dash-countdown {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 148px;
+  height: 148px;
+  text-align: center;
+  background: var(--surface);
+  border: 4px solid var(--pink-dark);
+  border-radius: 50%;
+  /* a soft outer ring, then the normal shadow */
+  box-shadow: 0 0 0 9px rgba(255, 255, 255, 0.45), var(--shadow-hover);
+}
+
+[data-theme='dark'] .dash-countdown {
+  box-shadow: 0 0 0 9px rgba(0, 0, 0, 0.3), var(--shadow-hover);
+}
+
+.dash-countdown strong {
+  font-family: 'Playfair Display', serif;
+  font-size: 50px;
+  line-height: 1;
+  color: var(--pink-dark);
+}
+
+/* the word "Today" is longer than a number, so it is smaller */
+.dash-countdown .dash-countdown-word {
+  font-size: 32px;
+}
+
+.dash-countdown span {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-gray);
+}
+
+/* ---------- 2. setup progress: one slim line ---------- */
+
+.dash-setup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 14px 20px;
+  margin-bottom: 24px;
+  background: var(--pink-light);
+  border: 1px solid var(--soft);
+  border-radius: 16px;
+}
+
+.dash-setup-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-setup-text strong {
+  font-size: 15px;
+}
+
+.dash-setup-text span {
+  font-size: 13px;
+  color: var(--text-gray);
+}
+
+.dash-setup-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-right: auto;
+  list-style: none;
+}
+
+.dash-setup-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-gray);
+  background: var(--surface);
+  border: 1px dashed var(--soft);
+  border-radius: 999px;
+}
+
+.dash-setup-steps li.done {
+  color: #1F8A5B;
+  background: #EAF7F0;
+  border: 1px solid #BFE5D2;
+}
+
+[data-theme='dark'] .dash-setup-steps li.done {
+  color: #6FD3A8;
+  background: #1C3329;
+  border-color: #2C5644;
+}
+
+/* ---------- 3. four numbers in one card, split by thin lines ---------- */
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 24px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+}
+
+.dash-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 24px 26px;
+  border-left: 1px solid var(--border);
+  transition: background 0.2s;
+}
+
+.dash-stat:first-child {
+  border-left: none;
+}
+
+.dash-stat:hover {
+  background: var(--bg);
+}
+
+.dash-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-gray);
+}
+
+.dash-stat-label svg {
+  color: var(--pink-dark);
+}
+
+.dash-stat-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-dark);
+}
+
+/* the "/3" after a number is smaller and grey */
+.dash-stat-number span {
+  font-size: 19px;
+  color: var(--text-gray);
+}
+
+.dash-stat-note {
+  font-size: 13.5px;
+  color: var(--text-gray);
+}
+
+.dash-stat-note strong {
+  color: var(--text-dark);
+}
+
+.dash-bar {
+  display: block;
+  height: 6px;
+  margin: 8px 0 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--pink-light);
+}
+
+.dash-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pink-dark);
+  transition: width 0.6s ease;
+}
+
+.dash-bar-fill.over {
+  background: #C0392B;
+}
+
+/* ---------- 4. what is coming: a wide panel and two narrow ones ---------- */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.dash-side {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dash-panel {
+  padding: 24px 26px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+}
+
+.dash-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.dash-panel-head h2 {
+  font-size: 21px;
+}
+
+.dash-panel-head a,
+.dash-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--pink-dark);
+}
+
+.dash-panel-head a:hover,
+.dash-more:hover {
+  color: var(--pink-deeper);
+}
+
+.dash-more {
+  margin-top: 12px;
+}
+
+.dash-empty {
+  font-size: 14px;
+  color: var(--text-gray);
+}
+
+.dash-empty a {
+  font-weight: 600;
+  color: var(--pink-dark);
+}
+
+/* ceremonies: a date tile on the left, the details on the right */
+.dash-events {
+  list-style: none;
+}
+
+.dash-events li {
+  display: flex;
+  gap: 16px;
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+}
+
+.dash-events li:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.dash-events li:last-child {
+  padding-bottom: 0;
+}
+
+.dash-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 60px;
+  height: 64px;
+  background: var(--pink-light);
+  border-radius: 14px;
+}
+
+.dash-date strong {
+  font-family: 'Playfair Display', serif;
+  font-size: 25px;
+  line-height: 1;
+  color: var(--pink-dark);
+}
+
+.dash-date span {
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-gray);
+}
+
+.dash-event-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-event-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.dash-event-top strong {
+  font-size: 16.5px;
+}
+
+.dash-chip {
+  flex-shrink: 0;
+  padding: 3px 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--pink-dark);
+  background: var(--pink-light);
+  border-radius: 999px;
+}
+
+.dash-event-place {
+  display: block;
+  margin-top: 2px;
+  font-size: 13.5px;
+  color: var(--text-gray);
+}
+
+.dash-event-money {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.dash-event-money .dash-bar {
+  flex: 1;
+  margin: 0;
+}
+
+.dash-event-money small {
+  font-size: 12.5px;
+  color: var(--text-gray);
+  white-space: nowrap;
+}
+
+/* tasks and vendors: simple rows with a thin line between them */
+.dash-rows {
+  list-style: none;
+}
+
+.dash-rows li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  font-size: 14.5px;
+  border-top: 1px solid var(--border);
+}
+
+.dash-rows li:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.dash-rows li:last-child {
+  padding-bottom: 0;
+}
+
+.dash-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--pink-dark);
+  border-radius: 50%;
+}
+
+.dash-row-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-row-title strong,
+.dash-row-title small {
+  display: block;
+}
+
+.dash-row-title small {
+  font-size: 12.5px;
+  color: var(--text-gray);
+}
+
+a.dash-row-title:hover strong {
+  color: var(--pink-dark);
+}
+
+.dash-due {
+  font-size: 12.5px;
+  color: var(--text-gray);
+  white-space: nowrap;
+}
+
+.dash-due-soon {
+  font-weight: 600;
+  color: #B4632A;
+}
+
+.dash-due-overdue {
+  font-weight: 600;
+  color: #C0392B;
+}
+
+[data-theme='dark'] .dash-due-soon {
+  color: #F4B183;
+}
+
+[data-theme='dark'] .dash-due-overdue {
+  color: #FF8A80;
+}
+
+.dash-price {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--pink-dark);
+  white-space: nowrap;
+}
+
+/* ---------- smaller screens ---------- */
+
+@media (max-width: 900px) {
+  .dash-hero {
+    padding: 28px 26px;
+  }
+
+  .dash-hero-photo {
+    inset: 0 0 0 30%;
+    opacity: 0.55;
+  }
+
+  /* two numbers in a row, with lines between the four */
+  .dash-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dash-stat:nth-child(3) {
+    border-left: none;
+  }
+
+  .dash-stat:nth-child(n + 3) {
+    border-top: 1px solid var(--border);
+  }
+
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dash-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 0;
+  }
+
+  .dash-hero h1 {
+    font-size: 30px;
+  }
+
+  .dash-countdown {
+    width: 112px;
+    height: 112px;
+  }
+
+  .dash-countdown strong {
+    font-size: 38px;
+  }
+
+  .dash-countdown .dash-countdown-word {
+    font-size: 26px;
+  }
+
+  .dash-stat {
+    padding: 18px 16px;
+  }
+
+  .dash-stat-number {
+    font-size: 26px;
+  }
+
+  .dash-panel {
+    padding: 20px 18px;
+  }
+
+  .dash-event-top {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- Guests card: one bar in three colours ---------- */
+.dash-rsvp-bar {
+  display: flex;
+  overflow: hidden;
+}
+
+.dash-rsvp-bar span {
+  height: 100%;
+}
+
+.dash-rsvp-yes {
+  background: #2F9E6B;
+}
+
+.dash-rsvp-wait {
+  background: #E5A93B;
+}
+
+.dash-rsvp-no {
+  background: #B9AAB0;
+}
+
+/* the small coloured squares in "2 pending · 1 declined" */
+.dash-rsvp-key {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+}
+
+.dash-key {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+
+.dash-key + .dash-key,
+.dash-rsvp-key .dash-key:not(:first-child) {
+  margin-left: 6px;
+}
+
+/* ---------- Where the money goes ---------- */
+.dash-cats {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dash-cat-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  font-size: 14.5px;
+  color: var(--text-dark);
+}
+
+.dash-cat-top strong {
+  font-weight: 600;
+}
+
+/* the one line about the payments, under the bars */
+.dash-pay {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-gray);
+}
+
+.dash-pay strong {
+  color: var(--text-dark);
+}
+
+.dash-pay .dash-pay-paid {
+  color: #2F9E6B;
+}
+
+[data-theme='dark'] .dash-pay .dash-pay-paid,
+[data-theme='dark'] .dash-rsvp-yes {
+  color: #5BC892;
+}
+
+[data-theme='dark'] .dash-rsvp-yes {
+  background: #46B580;
+}
+
+/* ---------- Vendor bookings: the status badge ---------- */
+.dash-status {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9A6A12;
+  background: #FCEFD6;
+  border-radius: 999px;
+}
+
+[data-theme='dark'] .dash-status {
+  color: #F1C56E;
+  background: #3A2E1A;
+}

@@ -1,8 +1,71 @@
-export default function App() {
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import Navbar from './components/Navbar.jsx'
+import Footer from './components/Footer.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import Guests from './features/guests/Guests.jsx'
+import Login from './features/auth/Login.jsx'
+import Register from './features/auth/Register.jsx'
+import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
+import Vendors from './features/vendors/Vendors.jsx'
+import VendorDetail from './features/vendors/VendorDetail.jsx'
+import Events from './features/planning/Events.jsx'
+import Tasks from './pages/Tasks.jsx'
+import Timeline from './pages/Timeline.jsx'
+import NotFound from './pages/NotFound.jsx'
+import PublicInvite from './features/guests/PublicInvite.jsx'
+
+// All the pages. Every time the address changes we scroll to the top and
+// play a short fade-in, so moving between pages feels smooth.
+function Pages() {
+  const location = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location.pathname])
+
   return (
-    <main style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
-      <h1>Wedding and Event Planning Management Platform</h1>
-      <p>Group 7 mini project. Features are being built on feature branches.</p>
-    </main>
+    // a new key makes React treat it as a new element, which restarts the animation
+    <div key={location.pathname} className="page-enter">
+      <Routes location={location}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/invite/:id" element={<PublicInvite />} />
+        <Route path="/vendors" element={<Vendors />} />
+        <Route path="/vendors/:id" element={<VendorDetail />} />
+        <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
+        <Route path="/guests" element={<ProtectedRoute><Guests /></ProtectedRoute>} />
+        <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+        <Route path="/timeline" element={<ProtectedRoute><Timeline /></ProtectedRoute>} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
   )
 }
+
+function Layout() {
+  const location = useLocation()
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register'
+
+  return (
+    <div className={`app-layout ${isAuthPage ? 'auth-active' : ''}`}>
+      <a href="#main" className="skip-link">Skip to main content</a>
+      <Navbar />
+      <main id="main">
+        <Pages />
+      </main>
+      {!isAuthPage && <Footer />}
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Layout />
+    </BrowserRouter>
+  )
+}
+
+export default App

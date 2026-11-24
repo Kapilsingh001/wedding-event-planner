@@ -1,0 +1,109 @@
+.dropdown {
+  position: relative;
+  min-width: 0;
+}
+
+.dropdown-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  padding: 0 12px 0 14px;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  color: var(--text-dark);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.dropdown-button span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dropdown-button svg {
+  flex-shrink: 0;
+  color: var(--text-gray);
+  transition: transform 0.2s;
+}
+
+.dropdown-button:hover {
+  border-color: var(--soft);
+}
+
+.dropdown-button.open {
+  border-color: var(--pink-dark);
+  box-shadow: 0 0 0 3px var(--pink-light);
+}
+
+.dropdown-button.open svg {
+  transform: rotate(180deg);
+  color: var(--pink-dark);
+}
+
+.dropdown-list {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 6px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-hover);
+  animation: dropdown-in 0.12s ease-out;
+}
+
+.dropdown-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  font-size: 15px;
+  white-space: nowrap;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dropdown-list li.active {
+  background: var(--pink-light);
+}
+
+.dropdown-list li[aria-selected='true'] {
+  font-weight: 600;
+  color: var(--pink-dark);
+}
+
+/* round-ended version, for filter bars (e.g. the Vendors page) */
+.dropdown-pill .dropdown-button {
+  height: 48px;
+  padding: 0 16px 0 20px;
+  border-radius: 999px;
+}
+
+.dropdown-pill .dropdown-list {
+  border-radius: 16px;
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

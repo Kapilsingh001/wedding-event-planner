@@ -1,0 +1,273 @@
+/* Dark mode, part two.
+   The dark colours themselves are the variables under [data-theme='dark'] in
+   index.css. This file holds everything else that dark mode needs:
+     1. a smooth fade when the theme is switched
+     2. depth: a soft glow behind the page, themed scrollbar and selection
+     3. buttons and other solid pink fills that carry white text
+     4. form fields that had kept the browser's own grey
+     5. chips and badges whose colours are written inside the JSX
+     6. charts (Recharts)
+     7. the login and register background
+   Rules here start with [data-theme='dark'], so they do nothing in light mode. */
+
+/* ---------- 1. smooth switch ---------- */
+
+/* theme.js puts this class on <html> for a moment while the theme changes,
+   so colours fade instead of jumping. */
+.theme-switching,
+.theme-switching * {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
+    fill 0.3s ease, stroke 0.3s ease !important;
+}
+
+/* ---------- 2. depth ---------- */
+
+/* a faint pink and gold glow at the top, so the page is not one flat black */
+[data-theme='dark'] body {
+  background:
+    radial-gradient(900px 420px at 88% -90px, rgba(236, 111, 134, 0.11), transparent 70%),
+    radial-gradient(760px 380px at 4% -70px, rgba(194, 154, 69, 0.07), transparent 70%),
+    var(--bg);
+  background-repeat: no-repeat;
+}
+
+[data-theme='dark'] {
+  scrollbar-color: #4D353B var(--bg);
+}
+
+[data-theme='dark'] ::selection {
+  color: #FFFFFF;
+  background: #C93F59;
+}
+
+/* ---------- 3. solid pink fills with white text ---------- */
+
+/* In dark mode --pink-dark is a LIGHT pink, good for text and thin lines. White
+   text on it is hard to read. So everything that is a pink box with white text
+   uses the deeper pink instead. */
+[data-theme='dark'] .btn:not(.btn-ghost):not(.btn-danger):not(.btn-whatsapp):not([class*='btn-rsvp']),
+[data-theme='dark'] .ui-segment button.active,
+[data-theme='dark'] .tasks-filters button.active,
+[data-theme='dark'] .datepicker-day.selected,
+[data-theme='dark'] .profile-photo-button,
+[data-theme='dark'] .step-icon {
+  background: var(--pink-deeper);
+  border-color: var(--pink-deeper);
+}
+
+[data-theme='dark'] .btn:not(.btn-ghost):not(.btn-danger):not(.btn-whatsapp):not([class*='btn-rsvp']):hover,
+[data-theme='dark'] .profile-photo-button:hover {
+  background: #D8506A;
+  border-color: #D8506A;
+}
+
+/* the outlined button: light pink text, and a soft fill on hover */
+[data-theme='dark'] .btn-ghost {
+  color: var(--pink);
+}
+
+[data-theme='dark'] .btn-ghost:hover {
+  color: #FFFFFF;
+  background: var(--pink-light);
+  border-color: var(--pink-dark);
+}
+
+/* buttons that have their pink written in the JSX: rgb(244, 63, 94) */
+[data-theme='dark'] [style*='background-color: rgb(244, 63, 94)'],
+[data-theme='dark'] [style*='background: rgb(244, 63, 94)'] {
+  background-color: var(--pink-deeper) !important;
+}
+
+/* the green "Attending" button on the invitation page */
+[data-theme='dark'] .btn.btn-rsvp-active {
+  background: #0B7F5C !important;
+  border-color: #0B7F5C !important;
+}
+
+[data-theme='dark'] .guests-delete-btn {
+  color: var(--pink);
+}
+
+/* ---------- 4. form fields ---------- */
+
+/* A field with no colour of its own gets the browser's dark grey, which does
+   not match our pages. :where() keeps this rule weak, so any class or inline
+   style of a page still wins over it. */
+[data-theme='dark'] :where(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']), textarea, select) {
+  color: var(--text-dark);
+  background-color: var(--bg);
+  border-color: var(--border);
+}
+
+[data-theme='dark'] :where(input, textarea)::placeholder {
+  color: var(--text-gray);
+  opacity: 0.7;
+}
+
+/* ---------- 5. chips and badges with colours written in the JSX ----------
+   These pages put colours straight into style={{ ... }}. The browser keeps them
+   in the style attribute as rgb(...), so they are found with attribute
+   selectors. !important is needed because inline styles normally win. */
+
+/* page wrappers: let the page glow show through */
+[data-theme='dark'] [style*='background-color: rgb(255, 247, 248)'],
+[data-theme='dark'] [style*='background-color: rgb(255, 245, 247)'] {
+  background-color: transparent !important;
+}
+
+/* table header rows keep a soft tint */
+[data-theme='dark'] tr[style*='background-color: rgb(255, 245, 247)'] {
+  background-color: var(--pink-light) !important;
+}
+
+/* vendor category chips: orange, purple, pink, green, magenta, grey */
+[data-theme='dark'] [style*='background: rgb(251, 234, 221)'] {
+  color: #F4B183 !important;
+  background: #3A2A1F !important;
+}
+
+[data-theme='dark'] [style*='background: rgb(236, 233, 247)'] {
+  color: #B7AEF0 !important;
+  background: #2A2740 !important;
+}
+
+[data-theme='dark'] [style*='background: rgb(255, 227, 233)'] {
+  color: #FF9DB0 !important;
+  background: #3A2129 !important;
+}
+
+[data-theme='dark'] [style*='background: rgb(225, 245, 236)'] {
+  color: #6FD3A8 !important;
+  background: #1C3329 !important;
+}
+
+[data-theme='dark'] [style*='background: rgb(251, 228, 239)'] {
+  color: #F5A3C7 !important;
+  background: #3A2130 !important;
+}
+
+[data-theme='dark'] [style*='background: rgb(243, 235, 238)'] {
+  color: #C9BFC2 !important;
+  background: #2E2729 !important;
+}
+
+/* green "paid" badges and boxes */
+[data-theme='dark'] [style*='background-color: rgb(209, 250, 229)'] {
+  color: #6FD3A8 !important;
+  background-color: #1C3329 !important;
+}
+
+/* amber "pending" badges and boxes */
+[data-theme='dark'] [style*='background-color: rgb(254, 243, 199)'] {
+  color: #F4C98A !important;
+  background-color: #3A2E1A !important;
+}
+
+/* pink type chips: the text was too dark for the dark chip */
+[data-theme='dark'] [style*='color: rgb(190, 24, 93)'] {
+  color: #F9A8C4 !important;
+}
+
+/* coloured text written in the JSX: pink, red, dark red, amber, dark green */
+[data-theme='dark'] [style^='color: rgb(244, 63, 101)'],
+[data-theme='dark'] [style*=' color: rgb(244, 63, 101)'] {
+  color: #FF8FA3 !important;
+}
+
+[data-theme='dark'] [style^='color: rgb(220, 38, 38)'],
+[data-theme='dark'] [style*=' color: rgb(220, 38, 38)'],
+[data-theme='dark'] [style^='color: rgb(185, 28, 28)'],
+[data-theme='dark'] [style*=' color: rgb(185, 28, 28)'],
+[data-theme='dark'] [style^='color: rgb(153, 27, 27)'],
+[data-theme='dark'] [style*=' color: rgb(153, 27, 27)'] {
+  color: #FF8A80 !important;
+}
+
+[data-theme='dark'] [style^='color: rgb(180, 83, 9)'],
+[data-theme='dark'] [style*=' color: rgb(180, 83, 9)'],
+[data-theme='dark'] [style^='color: rgb(146, 64, 14)'],
+[data-theme='dark'] [style*=' color: rgb(146, 64, 14)'] {
+  color: #F4B183 !important;
+}
+
+[data-theme='dark'] [style^='color: rgb(6, 95, 70)'],
+[data-theme='dark'] [style*=' color: rgb(6, 95, 70)'],
+[data-theme='dark'] [style^='color: rgb(5, 150, 105)'],
+[data-theme='dark'] [style*=' color: rgb(5, 150, 105)'] {
+  color: #6FD3A8 !important;
+}
+
+/* the two demo chips on the home page */
+[data-theme='dark'] .chip-confirmed {
+  color: #6FD3A8;
+  background: #1C3329;
+}
+
+[data-theme='dark'] .chip-planning {
+  color: #F4C98A;
+  background: #3A2E1A;
+}
+
+/* ---------- 6. charts (Recharts draws SVG, and CSS can restyle it) ---------- */
+
+[data-theme='dark'] .recharts-cartesian-grid line {
+  stroke: var(--border);
+}
+
+[data-theme='dark'] .recharts-cartesian-axis-line,
+[data-theme='dark'] .recharts-cartesian-axis-tick-line {
+  stroke: var(--soft);
+}
+
+[data-theme='dark'] .recharts-cartesian-axis-tick-value {
+  fill: var(--text-gray);
+}
+
+[data-theme='dark'] .recharts-legend-item-text {
+  color: var(--text-gray) !important;
+}
+
+/* the thin lines between pie slices were white */
+[data-theme='dark'] .recharts-sector {
+  stroke: var(--surface);
+}
+
+/* over-budget red and "spent" green were made for a white page; soften them */
+[data-theme='dark'] .recharts-rectangle[fill='#dc2626'] {
+  fill: #F2685C;
+}
+
+[data-theme='dark'] .recharts-rectangle[fill='#059669'] {
+  fill: #34D399;
+}
+
+/* the box that appears when the mouse is over a chart */
+[data-theme='dark'] .recharts-default-tooltip {
+  color: var(--text-dark);
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
+  border-radius: 10px;
+  box-shadow: var(--shadow-hover);
+}
+
+[data-theme='dark'] .recharts-tooltip-label {
+  color: var(--text-dark);
+}
+
+[data-theme='dark'] .recharts-tooltip-cursor {
+  fill: rgba(255, 255, 255, 0.06);
+}
+
+/* ---------- 7. login and register ---------- */
+
+/* the bright picture behind the form is covered with a dark veil */
+[data-theme='dark'] .auth-page {
+  background-image:
+    linear-gradient(rgba(21, 17, 19, 0.74), rgba(21, 17, 19, 0.86)),
+    url('/auth-bg.png');
+}
+
+[data-theme='dark'] .auth-card {
+  background: rgba(33, 26, 29, 0.9);
+  box-shadow: var(--shadow-hover);
+}

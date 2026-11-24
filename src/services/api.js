@@ -1,15 +1,9 @@
-const API_URL = 'http://localhost:3001'
+import axios from 'axios'
 
-export async function getAll(collection) {
-  const res = await fetch(`${API_URL}/${collection}`)
-  return res.json()
-}
+// One place for the API address. Locally it is JSON Server on port 3001.
+// On Vercel we set VITE_API_URL to the Render address instead.
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
-export async function create(collection, data) {
-  const res = await fetch(`${API_URL}/${collection}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  return res.json()
-}
+const api = axios.create({ baseURL: API_URL })
+
+export default api

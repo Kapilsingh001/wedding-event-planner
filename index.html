@@ -2,10 +2,100 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wedding and Event Planner</title>
+    <title>Kalyanam | Wedding &amp; Event Planner</title>
+    <meta name="description" content="Plan your wedding in one place: vendors, ceremonies, budget, guests and digital invitations." />
+
+    <!-- Link preview. When a link of this website is sent on WhatsApp, WhatsApp
+         reads these tags and shows a card with a title, a text and a picture.
+         It does not run JavaScript, so the tags must be here in the HTML.
+         %VITE_SITE_URL% is the public address of the website (see vite.config.js). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kalyanam" />
+    <meta property="og:title" content="Wedding Invitation | Kalyanam" />
+    <meta property="og:description" content="You are invited. Open the link to see your invitation card and send your RSVP." />
+    <meta property="og:image" content="%VITE_SITE_URL%/og-invite.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Dark or light mode is set before anything is drawn, so the loading
+         screen has the right colours. It follows the same rule as src/theme.js:
+         the saved choice first, otherwise the setting of the computer. -->
+    <script>
+      (function () {
+        var theme = null
+        try {
+          theme = localStorage.getItem('theme')
+        } catch (e) {
+          // localStorage can be blocked; use the setting of the computer
+        }
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.setAttribute('data-theme', theme)
+      })()
+    </script>
+
+    <!-- Styles of the loading screen. A small local file, linked here and not
+         from React, so the loading screen is styled from the very first moment. -->
+    <link rel="stylesheet" href="/splash.css" />
+    <!-- start loading the logo pictures at once, so the loading screen never waits for them -->
+    <link rel="preload" as="image" href="/logo-sketch.svg" type="image/svg+xml" />
+    <link rel="preload" as="image" href="/wordmark.svg" type="image/svg+xml" />
+    <link rel="preload" as="image" href="/logo.webp" type="image/webp" />
+
+    <!-- The fonts come from the internet, so they must not hold the page back.
+         media="print" lets the browser load them in the background, and onload
+         switches them on when they have arrived. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
   </head>
   <body>
+    <!-- Full-screen loading screen. It is plain HTML and CSS, so it shows
+         before React is ready. src/splash.js fades it out when the page is drawn. -->
+    <div id="splash" role="status" aria-label="Loading Kalyanam">
+      <!-- rose petals drifting down behind the logo -->
+      <div class="splash-petals" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+
+      <div class="splash-inner">
+        <div class="splash-logo">
+          <span class="splash-glow"></span>
+          <span class="splash-ring"></span>
+          <span class="splash-ring splash-ring-2"></span>
+
+          <!-- 1. the outline of the logo is drawn like a pen sketch (logo-sketch.svg)
+               2. the coloured logo fades in on top of the sketch
+               3. a band of light sweeps over it -->
+          <div class="splash-art">
+            <img class="splash-sketch" src="/logo-sketch.svg" alt="" width="560" height="510" />
+            <img class="splash-mark" src="/logo.webp" alt="" width="560" height="510" />
+            <span class="splash-shine"></span>
+          </div>
+
+          <svg class="splash-spark splash-spark-1" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
+          <svg class="splash-spark splash-spark-2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
+          <svg class="splash-spark splash-spark-3" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
+        </div>
+
+        <!-- the name is written letter by letter (wordmark.svg) -->
+        <img class="splash-wordmark" src="/wordmark.svg" alt="Kalyanam" width="392" height="133" />
+        <p class="splash-tag">Wedding &amp; Event Planner</p>
+        <div class="splash-bar"><span></span></div>
+      </div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
