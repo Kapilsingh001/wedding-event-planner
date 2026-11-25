@@ -5,6 +5,7 @@ import Icon from '../../components/Icons.jsx';
 import { formatInviteDate } from './inviteUtils.js';
 import { downloadInviteCard } from './cardGenerator.js';
 import { cleanRsvpNote, RSVP_NOTE_MAX } from './guestUtils.js';
+import ConfirmDialog from '../planning/ConfirmDialog.jsx';
 import './PublicInvite.css';
 
 export default function PublicInvite() {
@@ -25,6 +26,7 @@ export default function PublicInvite() {
   const [note, setNote] = useState('');
   const [savingNote, setSavingNote] = useState(false);
   const [noteSaved, setNoteSaved] = useState(false);
+  const [notice, setNotice] = useState(''); // error message shown in a popup
 
   useEffect(() => {
     let isMounted = true;
@@ -116,7 +118,7 @@ export default function PublicInvite() {
       setTimeout(() => setRsvpSaved(false), 3500);
     } catch (err) {
       console.error('Failed to update RSVP', err);
-      alert('Could not update your RSVP. Please try again.');
+      setNotice('Could not update your RSVP. Please try again.');
     } finally {
       setUpdatingRsvp(false);
     }
@@ -135,7 +137,7 @@ export default function PublicInvite() {
       setNoteSaved(true);
     } catch (err) {
       console.error('Failed to save the message', err);
-      alert('Could not send your message. Please try again.');
+      setNotice('Could not send your message. Please try again.');
     } finally {
       setSavingNote(false);
     }
@@ -300,6 +302,18 @@ export default function PublicInvite() {
           </div>
         </div>
       </div>
+
+      {notice && (
+        <ConfirmDialog
+          title="Something went wrong"
+          message={notice}
+          confirmLabel="OK"
+          cancelLabel={null}
+          confirmClass=""
+          onConfirm={() => setNotice('')}
+          onCancel={() => setNotice('')}
+        />
+      )}
     </div>
   );
 }
