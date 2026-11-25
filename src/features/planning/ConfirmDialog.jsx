@@ -1,10 +1,13 @@
 import { useEffect } from "react";
 
-// Reusable confirm popup. Replaces window.confirm.
+// Reusable popup for the whole site. Replaces window.confirm and window.alert.
+// For a message with only an OK button, pass cancelLabel={null} and confirmClass="".
 export default function ConfirmDialog({
   title = "Are you sure?",
   message,
   confirmLabel = "Delete",
+  cancelLabel = "Cancel",
+  confirmClass = "btn-danger",
   onConfirm,
   onCancel,
 }) {
@@ -35,8 +38,10 @@ export default function ConfirmDialog({
         <p className="ui-muted" style={{ margin: "0 0 4px" }}>{message}</p>
 
         <div className="ui-modal-actions">
-          <button type="button" className="btn btn-ghost" onClick={onCancel}>Cancel</button>
-          <button type="button" className="btn btn-danger" onClick={onConfirm} autoFocus>{confirmLabel}</button>
+          {cancelLabel && (
+            <button type="button" className="btn btn-ghost" onClick={onCancel}>{cancelLabel}</button>
+          )}
+          <button type="button" className={`btn ${confirmClass}`} onClick={onConfirm} autoFocus>{confirmLabel}</button>
         </div>
       </div>
     </div>

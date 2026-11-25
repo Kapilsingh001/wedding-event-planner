@@ -7,6 +7,7 @@ import Icon from '../../components/Icons.jsx';
 import BookingForm from './BookingForm';
 import MyBookings from './MyBookings';
 import { hasActiveBooking } from './bookingUtils';
+import ConfirmDialog from '../planning/ConfirmDialog.jsx';
 
 function useThemeFonts() {
   useEffect(() => {
@@ -108,6 +109,7 @@ export default function VendorDetail() {
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [bookingError, setBookingError] = useState('');
+  const [bookingToCancel, setBookingToCancel] = useState(null); // waiting for the popup
 
   // Load the vendor (and similar vendors) every time the id in the URL changes
   useEffect(() => {
@@ -216,9 +218,15 @@ export default function VendorDetail() {
     setSuccessMessage('Booking request sent.');
   };
 
-  const handleCancelBooking = async (booking) => {
-    if (!window.confirm('Cancel this booking request?')) return;
+  // Cancel button: open the popup first
+  const handleCancelBooking = (booking) => {
+    setBookingToCancel(booking);
+  };
 
+  // Runs after the user presses "Yes, cancel" in the popup
+  const confirmCancelBooking = async () => {
+    const booking = bookingToCancel;
+    setBookingToCancel(null);
     try {
       await api.delete(`/bookings/${booking.id}`);
       setBookings((prev) => prev.filter((item) => item.id !== booking.id));
@@ -535,6 +543,17 @@ export default function VendorDetail() {
           </>
         )}
       </div>
+
+      {bookingToCancel && (
+        <ConfirmDialog
+          title="Cancel booking request?"
+          message={`Your request to ${bookingToCancel.vendorName || 'this vendor'} will be cancelled.`}
+          confirmLabel="Yes, cancel"
+          cancelLabel="Keep it"
+          onConfirm={confirmCancelBooking}
+          onCancel={() => setBookingToCancel(null)}
+        />
+      )}
     </div>
   );
 }
