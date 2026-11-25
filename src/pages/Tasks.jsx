@@ -4,6 +4,7 @@ import { getUser } from '../features/auth/auth'
 import Icon from '../components/Icons.jsx'
 import Dropdown from '../components/Dropdown.jsx'
 import DatePicker from '../components/DatePicker.jsx'
+import ConfirmDialog from '../features/planning/ConfirmDialog.jsx'
 import { isPastDate, addDays, getDueInfo, countTasks } from './tasksUtils'
 import './Tasks.css'
 
@@ -42,6 +43,7 @@ function Tasks() {
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('Venue')
   const [dueDate, setDueDate] = useState('')
+  const [taskToDelete, setTaskToDelete] = useState(null) // the task waiting for "Delete?" in the popup
 
   // en-CA gives YYYY-MM-DD in local time, the same format the date input uses
   const today = new Date().toLocaleDateString('en-CA')
@@ -106,8 +108,10 @@ function Tasks() {
     }
   }
 
-  async function deleteTask(task) {
-    if (!window.confirm(`Delete "${task.title}"?`)) return
+  // Runs after the user presses Delete in the popup
+  async function deleteTask() {
+    const task = taskToDelete
+    setTaskToDelete(null)
     try {
       await api.delete(`/tasks/${task.id}`)
       setTasks((prev) => prev.filter((t) => t.id !== task.id))
@@ -258,7 +262,7 @@ function Tasks() {
                   type="button"
                   className="task-delete"
                   aria-label={`Delete ${task.title}`}
-                  onClick={() => deleteTask(task)}
+                  onClick={() => setTaskToDelete(task)}
                 >
                   <Icon name="close" size={16} />
                 </button>
@@ -266,6 +270,16 @@ function Tasks() {
             )
           })}
         </ul>
+      )}
+
+      {taskToDelete && (
+        <ConfirmDialog
+          title="Delete task?"
+          message={`"${taskToDelete.title}" will be removed from your checklist.`}
+          confirmLabel="Delete"
+          onConfirm={deleteTask}
+          onCancel={() => setTaskToDelete(null)}
+        />
       )}
     </div>
   )

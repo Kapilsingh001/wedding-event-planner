@@ -8,6 +8,7 @@ import { guestSchema } from './guestSchema.js';
 import { countByRsvp } from './guestUtils.js';
 import Dropdown from '../../components/Dropdown.jsx';
 import InviteModal from './InviteModal.jsx';
+import ConfirmDialog from '../planning/ConfirmDialog.jsx';
 import './Guests.css';
 
 const SIDE_OPTIONS = [
@@ -34,6 +35,8 @@ export default function Guests() {
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [selectedGuestForInvite, setSelectedGuestForInvite] = useState(null);
+  const [guestToRemove, setGuestToRemove] = useState(null); // { id, name } waiting for the popup
+  const [notice, setNotice] = useState(''); // error message shown in a popup
 
   // Filter & Search state
   const [searchTerm, setSearchTerm] = useState('');
@@ -131,20 +134,24 @@ export default function Guests() {
         prev.map((g) => (g.id === guestId ? { ...g, rsvp: newRsvp } : g))
       );
     } catch {
-      alert('Could not update RSVP. Please check if JSON Server is running.');
+      setNotice('Could not update RSVP. Please check if JSON Server is running.');
     }
   };
 
-  // Delete guest handler (DELETE)
-  const handleDelete = async (guestId, guestName) => {
-    const confirmed = window.confirm(`Are you sure you want to remove ${guestName} from the guest list?`);
-    if (!confirmed) return;
+  // Delete button: open the popup first
+  const handleDelete = (guestId, guestName) => {
+    setGuestToRemove({ id: guestId, name: guestName });
+  };
 
+  // Runs after the user presses Remove in the popup (DELETE)
+  const confirmDelete = async () => {
+    const guestId = guestToRemove.id;
+    setGuestToRemove(null);
     try {
       await api.delete(`/guests/${guestId}`);
       setGuests((prev) => prev.filter((g) => g.id !== guestId));
     } catch {
-      alert('Could not delete guest. Please check if JSON Server is running.');
+      setNotice('Could not delete guest. Please check if JSON Server is running.');
     }
   };
 
@@ -430,6 +437,28 @@ export default function Guests() {
           hostName={hostName}
           onClose={() => setSelectedGuestForInvite(null)}
           onInvited={handleGuestInvited}
+        />
+      )}
+
+      {guestToRemove && (
+        <ConfirmDialog
+          title="Remove guest?"
+          message={`${guestToRemove.name} will be removed from your guest list.`}
+          confirmLabel="Remove"
+          onConfirm={confirmDelete}
+          onCancel={() => setGuestToRemove(null)}
+        />
+      )}
+
+      {notice && (
+        <ConfirmDialog
+          title="Something went wrong"
+          message={notice}
+          confirmLabel="OK"
+          cancelLabel={null}
+          confirmClass=""
+          onConfirm={() => setNotice('')}
+          onCancel={() => setNotice('')}
         />
       )}
     </div>
